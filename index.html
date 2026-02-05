@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noxhaven: Blood & Empire - Kingpin Update</title>
+    <title>Noxhaven: Blood & Empire - Kingpin Fixed</title>
     <!-- Externe Icon Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -25,7 +25,7 @@
             --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; outline: none; }
         
         body { 
             margin: 0; padding: 0; background-color: var(--bg); color: var(--text-main); 
@@ -57,6 +57,8 @@
             display: flex; flex-direction: column; align-items: center; gap: 2px; 
             font-size: 0.65rem; border: 1px solid var(--border); transition: 0.2s;
         }
+        .res-label { font-size: 0.5rem; color: #777; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .res-row { display: flex; align-items: center; gap: 3px; }
         .res-val { font-weight: 700; color: #fff; font-size: 0.8rem; }
         .dirty-val { color: var(--dirty); font-size: 0.55rem; font-weight: 600; }
 
@@ -235,7 +237,7 @@
         <div style="margin-bottom: 40px;">
             <div style="font-family: var(--font-main); color: var(--blood); font-size: 3.5rem; font-weight: bold; letter-spacing: 8px; margin-bottom: 5px; text-shadow: 0 0 30px rgba(185, 28, 28, 0.6);">NOXHAVEN</div>
             <div style="color: var(--gold); letter-spacing: 4px; font-size: 0.8rem; font-weight: 600; opacity: 0.8;">KINGPIN UPDATE</div>
-            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V5.5</div>
+            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.0 (FIXED)</div>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
             <button class="btn btn-action" onclick="window.UI.showDifficulty()">NIEUWE OPERATIE</button>
@@ -278,13 +280,34 @@
         </div>
         <div class="resource-bar">
             <div class="res-item">
-                <i data-lucide="banknote" size="14" style="color:var(--gold)"></i>
-                <span class="res-val" id="ui-money">0</span>
+                <span class="res-label">CASH</span>
+                <div class="res-row">
+                    <i data-lucide="banknote" size="12" style="color:var(--gold)"></i>
+                    <span class="res-val" id="ui-money">0</span>
+                </div>
                 <div class="dirty-val" id="ui-dirty-money">€0</div>
             </div>
-            <div class="res-item"><i data-lucide="shield" size="14" style="color:var(--purple)"></i><span class="res-val" id="ui-rep">0</span></div>
-            <div class="res-item"><i data-lucide="siren" size="14" style="color:var(--blood)"></i><span class="res-val" id="ui-heat">0%</span></div>
-            <div class="res-item"><i data-lucide="heart" size="14" style="color:var(--green)"></i><span class="res-val" id="ui-hp">100</span></div>
+            <div class="res-item">
+                <span class="res-label">REP</span>
+                <div class="res-row">
+                    <i data-lucide="shield" size="12" style="color:var(--purple)"></i>
+                    <span class="res-val" id="ui-rep">0</span>
+                </div>
+            </div>
+            <div class="res-item">
+                <span class="res-label">HEAT</span>
+                <div class="res-row">
+                    <i data-lucide="siren" size="12" style="color:var(--blood)"></i>
+                    <span class="res-val" id="ui-heat">0%</span>
+                </div>
+            </div>
+            <div class="res-item">
+                <span class="res-label">HP</span>
+                <div class="res-row">
+                    <i data-lucide="heart" size="12" style="color:var(--green)"></i>
+                    <span class="res-val" id="ui-hp">100</span>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -463,7 +486,7 @@
             <div id="ui-market-alert" style="color:var(--gold); font-size:0.7rem; margin-bottom:10px; font-weight:bold; display:none; background:rgba(198,163,6,0.1); padding:8px; border-radius:4px;">⚠️ Je bent hier niet. Reis hierheen om te handelen.</div>
             
             <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">
-                <span>BAGAGE: <span id="ui-inv-count">0</span> / <span id="ui-inv-max">12</span></span>
+                <span>BAGAGE: <span id="ui-inv-count">0</span> / <span id="ui-inv-max">15</span></span>
                 <span>MARGE: <span id="ui-trade-bonus">0%</span></span>
             </div>
             <div style="display:flex; gap:8px; margin-bottom:15px;">
@@ -491,10 +514,10 @@
             <div class="section-header"><span class="section-title">Mijn Crew</span></div>
             <div style="margin-bottom:10px; background:#111; padding:8px; border-radius:4px; font-size:0.7rem; color:#888;">
                 <strong style="color:var(--gold)">ROLLEN:</strong><br>
-                • <b>Hacker:</b> Verlaagt Heat sneller (-2 p/n)<br>
+                • <b>Hacker:</b> Verlaagt Heat sneller (-3 p/n)<br>
                 • <b>Enforcer:</b> Doet meer schade in combat<br>
                 • <b>Chauffeur:</b> Gratis reizen tussen districten<br>
-                • <b>Smokkelaar:</b> +3 Bagageruimte
+                • <b>Smokkelaar:</b> +5 Bagageruimte
             </div>
             <div id="crew-list"></div>
             <button class="btn btn-gold" style="width:100%; margin-bottom:20px;" onclick="window.Engine.recruit()">HUUR SPECIALIST (€2.500)</button>
@@ -540,11 +563,11 @@
     };
 
     const GOODS = [
-        { id: 'drugs', name: 'Synthetica', base: 150, icon: 'pipette' },
+        { id: 'drugs', name: 'Synthetica', base: 140, icon: 'pipette' },
         { id: 'weapons', name: 'Zware Wapens', base: 1400, icon: 'shield' },
         { id: 'tech', name: 'Zwarte Data', base: 800, icon: 'cpu' },
         { id: 'luxury', name: 'Geroofde Kunst', base: 4500, icon: 'gem' },
-        { id: 'meds', name: 'Medische Voorraad', base: 600, icon: 'pill' }
+        { id: 'meds', name: 'Medische Voorraad', base: 550, icon: 'pill' }
     ];
 
     const FAMILIES = {
@@ -553,7 +576,6 @@
         'bikers': { id: 'bikers', name: 'Iron Skulls', contact: 'Hammer', desc: 'Wapenhandelaren in Iron Borough.', color: '#d97706', home: 'iron' }
     };
 
-    // Contracts Template
     const CONTRACT_TEMPLATES = [
         { name: "Koeriersdienst", risk: 20, heat: 10, rewardBase: 1500, type: 'delivery' },
         { name: "Rivalen Intimideren", risk: 45, heat: 25, rewardBase: 3500, type: 'combat' },
@@ -562,9 +584,9 @@
     ];
 
     const HQ_UPGRADES = [
-        { id: 'security', name: 'Versterkte Deuren', cost: 5000, desc: 'Vermindert de kans op aanvallen met 10%.' },
-        { id: 'garage', name: 'Grotere Garage', cost: 8000, desc: '+5 Bagage ruimte.' },
-        { id: 'server', name: 'Encrypted Server', cost: 12000, desc: 'Sneller Heat verlies per dag.' },
+        { id: 'security', name: 'Versterkte Deuren', cost: 5000, desc: 'Vermindert de kans op aanvallen met 20%.' },
+        { id: 'garage', name: 'Grotere Garage', cost: 8000, desc: '+10 Bagage ruimte.' },
+        { id: 'server', name: 'Encrypted Server', cost: 12000, desc: 'Sneller Heat verlies (-10 p/d).' },
         { id: 'lab', name: 'Synthetica Lab', cost: 15000, desc: 'Produceer je eigen drugs. Start klein.' }
     ];
 
@@ -575,7 +597,6 @@
         { id: 'suit', type: 'armor', name: 'Maatpak', cost: 3000, stats: { charm: 3 }, desc: '+3 Charisma. Kleren maken de man.', reqRep: null },
         { id: 'phone', type: 'gadget', name: 'Burner Phone', cost: 800, stats: { brains: 1 }, desc: '+1 Vernuft. Voor snelle deals.', reqRep: null },
         { id: 'jammer', type: 'gadget', name: 'Signal Jammer', cost: 5000, stats: { brains: 4 }, desc: '+4 Vernuft. Blokkeert politiesignalen.', reqRep: null },
-        // Faction Gear
         { id: 'goldak', type: 'weapon', name: 'Golden AK', cost: 12000, stats: { muscle: 8, charm: 2 }, desc: 'Cartel Exclusive. Dodelijke bling.', reqRep: { f: 'cartel', val: 50 } },
         { id: 'ghostdeck', type: 'gadget', name: 'Ghost Deck', cost: 15000, stats: { brains: 8 }, desc: 'Syndicate Tech. Hack alles.', reqRep: { f: 'syndicate', val: 50 } },
         { id: 'sawnoff', type: 'weapon', name: 'Sawn-Off', cost: 8000, stats: { muscle: 7 }, desc: 'Biker Favoriet. Korte afstand, enorme schade.', reqRep: { f: 'bikers', val: 50 } }
@@ -620,748 +641,45 @@
     let db, auth, user, tradeMode = 'buy';
     let useLocalStorage = false;
     let selectedDistrict = null; 
+    let tradeDebounce = false;
 
-    const Engine = {
-        async init() {
-            try {
-                if (typeof __firebase_config === 'undefined' || !__firebase_config) throw new Error("Local Mode");
-                const config = JSON.parse(__firebase_config);
-                const app = initializeApp(config);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                await signInAnonymously(auth);
-                onAuthStateChanged(auth, async (u) => {
-                    user = u;
-                    if (user) await this.load();
-                });
-            } catch (e) {
-                console.log("Overschakelen naar offline modus:", e);
-                useLocalStorage = true;
-                this.load();
-            }
-        },
-
-        async load() {
-            if (useLocalStorage) {
-                const localData = localStorage.getItem('noxhaven_save');
-                if (localData) {
-                    try {
-                        state = JSON.parse(localData);
-                        this.checkSaveIntegrity(); 
-                        this.recalcStats(); 
-                        UI.hideStartScreen();
-                        this.generatePrices(false); 
-                        selectedDistrict = state.loc;
-                        
-                        if (state.activeCombat) {
-                            window.Engine.combatState = state.activeCombat;
-                            this.restoreCombatUI();
-                        }
-
-                        UI.render();
-                    } catch(e) { console.error("Corrupt save data", e); }
-                }
-            } else if (user && db) {
-                try {
-                    const snap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'));
-                    if (snap.exists()) {
-                        state = snap.data();
-                        this.checkSaveIntegrity();
-                        this.recalcStats();
-                        UI.hideStartScreen();
-                        this.generatePrices(false); 
-                        selectedDistrict = state.loc;
-                        
-                        if (state.activeCombat) {
-                            window.Engine.combatState = state.activeCombat;
-                            this.restoreCombatUI();
-                        }
-                        
-                        UI.render();
-                    }
-                } catch(e) { console.error("Load error", e); }
-            }
-        },
-
-        checkSaveIntegrity() {
-            if (!state.version || state.version < 5.5) state.version = 5.5; 
-            if (!state.player) state.player = { level: 1, xp: 0, nextXp: 100, skillPoints: 0, stats: { muscle: 1, brains: 1, charm: 1 }, loadout: { weapon: null, armor: null, gadget: null } };
-            if (!state.ownedGear) state.ownedGear = [];
-            if (!state.ownedBusinesses) state.ownedBusinesses = [];
-            if (!state.prices) state.prices = {};
-            if (!state.districtDemands) state.districtDemands = {};
-            if (!state.priceTrends) state.priceTrends = {};
-            if (state.activeCombat === undefined) state.activeCombat = null;
-            if (state.maxInv === undefined) state.maxInv = 12;
-            
-            // New v5.5 State
-            if (!state.activeContracts) state.activeContracts = [];
-            if (!state.lab) state.lab = { chemicals: 0 };
-            if (!state.leadersDefeated) state.leadersDefeated = [];
-            
-            // Ensure 3 contracts exist
-            if (state.activeContracts.length === 0) this.generateContracts();
-        },
-
-        recalcStats() {
-            let inv = 12;
-            if (state.hqUpgrades.includes('garage')) inv += 5;
-            const smugglers = state.crew.filter(c => c.role === 'Smokkelaar').length;
-            inv += (smugglers * 3);
-            state.maxInv = inv;
-        },
-
-        async save() {
-            if (!state) return;
-            state.version = 5.5; 
-            if (useLocalStorage) {
-                localStorage.setItem('noxhaven_save', JSON.stringify(state));
-            } else if (user && db) {
-                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'), state);
-            }
-        },
-
-        async reset() {
-            if (useLocalStorage) {
-                localStorage.removeItem('noxhaven_save');
-            } else if (user && db) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'));
-            }
-            state = null;
-            location.reload();
-        },
-
-        start(diff) {
-            let money = 5000, debt = 12000, heat = 0;
-            if (diff === 'easy') { money = 10000; debt = 0; }
-            if (diff === 'hard') { money = 1500; debt = 25000; heat = 15; }
-
-            state = {
-                version: 5.5,
-                day: 1, money: money, dirtyMoney: 0, rep: 0, hp: 100, heat: heat, debt: debt,
-                loc: 'low', maxInv: 12, inventory: { drugs: 0, weapons: 0, tech: 0, luxury: 0, meds: 0 },
-                crew: [], ownedDistricts: [], hqUpgrades: [], ownedGear: [], ownedBusinesses: [], policeRel: 20, 
-                familyRel: { cartel: 0, syndicate: 0, bikers: 0 },
-                activeContracts: [],
-                lab: { chemicals: 0 },
-                leadersDefeated: [],
-                prices: {}, priceTrends: {}, districtDemands: {},
-                currentNews: NEWS_HEADLINES[0], difficulty: diff,
-                activeCombat: null,
-                player: {
-                    level: 1, xp: 0, nextXp: 100, skillPoints: 0,
-                    stats: { muscle: 1, brains: 1, charm: 1 },
-                    loadout: { weapon: null, armor: null, gadget: null }
-                }
-            };
-            
-            this.generateContracts();
-            UI.hideStartScreen();
-            this.generatePrices(true);
-            selectedDistrict = state.loc;
-            UI.render();
-            this.save();
-        },
-
-        generatePrices(force = false) {
-            if (!force && state.prices && Object.keys(state.prices).length > 0) return;
-            state.prices = {};
-            state.districtDemands = {}; 
-            Object.keys(DISTRICTS).forEach(id => {
-                state.prices[id] = {};
-                state.districtDemands[id] = Math.random() > 0.8 ? GOODS[Math.floor(Math.random()*GOODS.length)].id : null;
-                GOODS.forEach(g => {
-                    const volatility = 0.5 + Math.random(); 
-                    const demandMod = (state.districtDemands[id] === g.id) ? 1.6 : 1.0;
-                    const newPrice = Math.floor(g.base * volatility * DISTRICTS[id].mods[g.id] * demandMod);
-                    state.prices[id][g.id] = newPrice;
-                    state.priceTrends[g.id] = Math.random() > 0.5 ? 'up' : 'down';
-                });
-            });
-        },
-        
-        generateContracts() {
-            state.activeContracts = [];
-            for(let i=0; i<3; i++) {
-                const template = CONTRACT_TEMPLATES[Math.floor(Math.random() * CONTRACT_TEMPLATES.length)];
-                const factionKeys = Object.keys(FAMILIES);
-                const employer = factionKeys[Math.floor(Math.random() * factionKeys.length)];
-                let target = factionKeys[Math.floor(Math.random() * factionKeys.length)];
-                while(target === employer) target = factionKeys[Math.floor(Math.random() * factionKeys.length)];
-                
-                state.activeContracts.push({
-                    id: Date.now() + i,
-                    name: template.name,
-                    type: template.type,
-                    employer: employer,
-                    target: target,
-                    risk: template.risk,
-                    heat: template.heat,
-                    reward: Math.floor(template.rewardBase * (1 + (state.day * 0.1))),
-                    xp: 25 + (state.day * 2)
-                });
-            }
-        },
-
-        async endTurn() {
-            if (state.debt > 100000) {
-                const gameOverHtml = `<div style="color:red; font-weight:bold; margin-bottom:10px;">DE SCHULD IS TE HOOG</div><p>De schuldeisers hebben je gevonden.</p>`;
-                UI.modal("GAME OVER", gameOverHtml, '<button class="btn btn-action" onclick="window.Engine.reset()">HERSTART SPEL</button>');
-                return;
-            }
-
-            // LAB LOGIC (Production)
-            let labYield = 0;
-            if (state.hqUpgrades.includes('lab') && state.lab.chemicals > 0) {
-                const batchSize = Math.min(state.lab.chemicals, 20); // Produce max 20 per day
-                state.lab.chemicals -= batchSize;
-                state.inventory['drugs'] = (state.inventory['drugs'] || 0) + batchSize;
-                labYield = batchSize;
-                state.heat += 5; // Production creates heat
-            }
-
-            state.day++;
-            
-            // Income
-            const districtInc = state.ownedDistricts.reduce((s, id) => s + DISTRICTS[id].income, 0);
-            let businessInc = 0;
-            let totalWashed = 0;
-            if(state.ownedBusinesses) {
-                state.ownedBusinesses.forEach(bid => {
-                    const biz = BUSINESSES.find(b => b.id === bid);
-                    if(biz) {
-                        businessInc += biz.income;
-                        let washAmount = Math.min(state.dirtyMoney, biz.clean);
-                        state.dirtyMoney -= washAmount;
-                        state.money += washAmount; 
-                        totalWashed += washAmount;
-                    }
-                });
-            }
-
-            state.money += (districtInc + businessInc);
-            if(state.debt > 0) state.debt = Math.floor(state.debt * 1.03);
-            
-            // Heat reduction
-            const totalBrains = this.getPlayerStat('brains');
-            let heatDrop = 5 + Math.floor(totalBrains / 2);
-            if(state.hqUpgrades.includes('server')) heatDrop += 5;
-            const hackers = state.crew.filter(c => c.role === 'Hacker').length;
-            heatDrop += (hackers * 2);
-            state.heat = Math.max(0, state.heat - heatDrop);
-
-            // Feedback
-            let feedback = `Winst: €${(districtInc + businessInc).toLocaleString()}`;
-            if (totalWashed > 0) feedback += ` | Wit: €${totalWashed.toLocaleString()}`;
-            if (labYield > 0) feedback += ` | Lab: +${labYield} Drugs`;
-            
-            UI.toast(feedback, false);
-
-            // Events
-            if (state.heat > 75 && Math.random() < 0.25) return this.triggerBountyHunter();
-            if (state.ownedDistricts.length > 0 && Math.random() < 0.15) return this.triggerRivalAttack();
-            if (Math.random() < 0.15) { this.triggerShadowEvent(); return; }
-
-            state.currentNews = NEWS_HEADLINES[Math.floor(Math.random() * NEWS_HEADLINES.length)];
-            this.generatePrices(true);
-            this.generateContracts(); // New contracts every day
-            UI.render();
-            await this.save();
-        },
-
-        triggerShadowEvent() {
-            const evt = SHADOW_EVENTS[Math.floor(Math.random() * SHADOW_EVENTS.length)];
-            let html = `<p>${evt.text}</p><div style="display:flex; flex-direction:column; gap:8px; margin-top:15px;">`;
-            evt.options.forEach((opt, idx) => {
-                html += `<button class="btn btn-choice" onclick="window.Engine.resolveShadowEvent('${evt.title}', '${opt.action}', ${opt.cost || 0})">${opt.text}</button>`;
-            });
-            html += `</div>`;
-            UI.modal(evt.title, html, " ");
-        },
-
-        resolveShadowEvent(title, action, cost) {
-            UI.closeModal();
-            if (cost > 0 && state.money < cost) return UI.toast("Niet genoeg geld!", true);
-            if (cost > 0) state.money -= cost;
-
-            if (action === 'bribe' || action === 'pay') {
-                UI.toast("Betaald. Je bent veilig.", false);
-            } else if (action === 'run') {
-                if (Math.random() > 0.5) UI.toast("Ontsnapt!", false);
-                else { state.heat += 20; UI.toast("Gepakt! Heat +20%", true); }
-            } else if (action === 'fight') {
-                this.startCombat(0, { name: "Gangster", risk: 50, hp: 80 }); 
-                return;
-            } else if (action === 'deal') {
-                state.inventory['drugs'] = (state.inventory['drugs'] || 0) + 1;
-                UI.toast("Deal gesloten.", false);
-            } else if (action === 'loot') {
-                state.money += 1000;
-                UI.toast("Geld in de zak.", false);
-            }
-            this.generatePrices(true);
-            UI.render();
-            this.save();
-        },
-
-        getPlayerStat(statName) {
-            let total = state.player.stats[statName];
-            Object.values(state.player.loadout).forEach(itemId => {
-                if (itemId) {
-                    const item = GEAR.find(g => g.id === itemId);
-                    if (item && item.stats && item.stats[statName]) total += item.stats[statName];
-                }
-            });
-            return total;
-        },
-
-        gainXp(amount) {
-            state.player.xp += amount;
-            if (state.player.xp >= state.player.nextXp) {
-                state.player.xp -= state.player.nextXp;
-                state.player.level++;
-                state.player.nextXp = Math.floor(state.player.nextXp * 1.5);
-                state.player.skillPoints++;
-                UI.toast(`LEVEL UP! Nu level ${state.player.level}`);
-            }
-        },
-
-        upgradeStat(stat) {
-            if (state.player.skillPoints > 0) {
-                state.player.stats[stat]++;
-                state.player.skillPoints--;
-                UI.render();
-                this.save();
-            }
-        },
-
-        buyGear(id) {
-            const item = GEAR.find(g => g.id === id);
-            if (state.ownedGear && state.ownedGear.includes(id)) return UI.toast("Al in bezit.");
-            
-            // Faction Check
-            if (item.reqRep) {
-                if (state.familyRel[item.reqRep.f] < item.reqRep.val) return UI.toast(`Vereist ${item.reqRep.val} Rep bij ${FAMILIES[item.reqRep.f].name}.`, true);
-            }
-
-            if (state.money < item.cost) return UI.toast("Te weinig geld.", true);
-            state.money -= item.cost;
-            if (!state.ownedGear) state.ownedGear = [];
-            state.ownedGear.push(id);
-            UI.toast(`${item.name} gekocht.`);
-            UI.render();
-            this.save();
-        },
-
-        buyBusiness(id) {
-            const biz = BUSINESSES.find(b => b.id === id);
-            if (state.ownedBusinesses && state.ownedBusinesses.includes(id)) return UI.toast("Al in bezit.");
-            if (state.money < biz.cost) return UI.toast("Onvoldoende kapitaal.", true);
-            state.money -= biz.cost;
-            if(!state.ownedBusinesses) state.ownedBusinesses = [];
-            state.ownedBusinesses.push(id);
-            this.gainXp(100);
-            UI.toast(`${biz.name} aangeschaft!`);
-            UI.render();
-            this.save();
-        },
-        
-        // Lab Functions
-        buyPrecursors() {
-            if (state.money < 500) return UI.toast("Te weinig geld (€500 nodig).", true);
-            state.money -= 500;
-            state.lab.chemicals += 10;
-            UI.toast("10 Chemicaliën gekocht.");
-            UI.render();
-            this.save();
-        },
-
-        equip(id) {
-            const item = GEAR.find(g => g.id === id);
-            if (!item) return;
-            state.player.loadout[item.type] = id;
-            UI.toast(`${item.name} uitgerust.`);
-            UI.render();
-            this.save();
-        },
-
-        unequip(slot) {
-            if (state.player.loadout[slot]) {
-                state.player.loadout[slot] = null;
-                UI.render();
-                this.save();
-            }
-        },
-        
-        healCrew(idx) {
-            const crew = state.crew[idx];
-            if (!crew) return;
-            const missing = 100 - crew.hp;
-            if (missing <= 0) return UI.toast("Al gezond.");
-            const cost = missing * 10;
-            if (state.money < cost) return UI.toast(`Dokter kost €${cost}.`, true);
-            state.money -= cost;
-            crew.hp = 100;
-            UI.toast(`${crew.name} genezen.`);
-            UI.render();
-            this.save();
-        },
-
-        promptPayDebt() {
-            if (state.debt <= 0) return UI.toast("Geen schuld.");
-            const maxPay = Math.min(state.money, state.debt);
-            const content = `<p>Huidige schuld: <span style="color:var(--blood)">€${state.debt.toLocaleString()}</span></p><p>Beschikbaar: €${state.money.toLocaleString()}</p>`;
-            const actions = `<button class="btn btn-gold" onclick="window.Engine.payDebt(5000)">BETAAL €5.000</button><button class="btn btn-action" onclick="window.Engine.payDebt(${maxPay})">BETAAL MAX (€${maxPay.toLocaleString()})</button><button class="btn" onclick="window.UI.closeModal()">ANNULEREN</button>`;
-            UI.modal("WOEKERAAR TERUGBETALEN", content, actions);
-        },
-
-        payDebt(amount) {
-            if (state.money < amount) return UI.toast("Onvoldoende geld.", true);
-            if (state.debt <= 0) return;
-            amount = Math.min(amount, state.debt);
-            state.money -= amount;
-            state.debt -= amount;
-            UI.closeModal();
-            UI.toast(`€${amount.toLocaleString()} afgelost.`);
-            UI.render();
-            this.save();
-        },
-
-        triggerBountyHunter() {
-            let actions = '';
-            state.crew.forEach((c, i) => { actions += `<button class="btn btn-choice" onclick="window.Engine.startCombat(${i}, {name: 'Hunter', risk: 80, hp: 120})">Stuur ${c.name}</button>`; });
-            actions += `<button class="btn btn-action" onclick="window.Engine.surrenderBounty()">Betaal premie (€5.000)</button>`;
-            UI.modal("BOUNTY HUNTER!", "Een Bounty Hunter heeft je HQ gevonden!", actions);
-        },
-
-        surrenderBounty() {
-            if (state.money < 5000) return UI.toast("Niet genoeg geld!", true);
-            state.money -= 5000;
-            state.heat = 20;
-            UI.closeModal();
-            UI.toast("Premie betaald.", false);
-            this.endTurn();
-        },
-
-        triggerRivalAttack() {
-            const id = state.ownedDistricts[Math.floor(Math.random()*state.ownedDistricts.length)];
-            const d = DISTRICTS[id];
-            let actions = '';
-            let defenseBonus = state.hqUpgrades.includes('security') ? 20 : 0;
-            defenseBonus += (this.getPlayerStat('muscle') * 2);
-            state.crew.forEach((c, i) => { actions += `<button class="btn btn-choice" onclick="window.Engine.defendDistrict('${id}', ${i}, ${defenseBonus})">Verdedig met ${c.name}</button>`; });
-            actions += `<button class="btn btn-action" onclick="window.Engine.loseDistrict('${id}')">Geef district op</button>`;
-            UI.modal("RIVALERENDE AANVAL", `Rivalen vallen <b>${d.name}</b> aan!`, actions);
-        },
-
-        defendDistrict(id, idx, bonus) {
-            if ((Math.random() * 100) < (40 + bonus)) {
-                UI.closeModal();
-                UI.toast("Aanval afgeslagen!");
-                state.crew[idx].xp += 20;
-                this.gainXp(10);
-                this.endTurn();
-            } else {
-                this.startCombat(idx, { name: "Bendeoorlog", risk: 50, hp: 100 });
-            }
-        },
-
-        loseDistrict(id) {
-            state.ownedDistricts = state.ownedDistricts.filter(x => x !== id);
-            UI.closeModal();
-            UI.toast("Sector verloren.", true);
-            this.endTurn();
-        },
-
-        washMoney() {
-            if (state.dirtyMoney <= 0) return UI.toast("Geen zwart geld.", true);
-            const amount = Math.min(state.dirtyMoney, 3000 + (state.ownedDistricts.length * 1000));
-            state.dirtyMoney -= amount;
-            state.money += Math.floor(amount * 0.85);
-            state.heat += 10;
-            this.gainXp(5);
-            UI.toast(`€${amount} witgewassen.`);
-            UI.render();
-            this.save();
-        },
-
-        buyUpgrade(id) {
-            const upg = HQ_UPGRADES.find(u => u.id === id);
-            if(state.hqUpgrades.includes(id)) return UI.toast("Al in bezit.");
-            if(state.money < upg.cost) return UI.toast("Te weinig geld.", true);
-            state.money -= upg.cost;
-            state.hqUpgrades.push(id);
-            this.recalcStats();
-            UI.toast(`${upg.name} geïnstalleerd.`);
-            UI.render();
-            this.save();
-        },
-        
-        selectDistrict(id) { selectedDistrict = id; UI.renderMap(); },
-
-        performDistrictAction() {
-            const id = selectedDistrict;
-            if(!id) return;
-            
-            if (state.loc === id) {
-                const d = DISTRICTS[id];
-                if (!state.ownedDistricts.includes(id)) {
-                    if (state.money >= d.cost) {
-                        state.money -= d.cost;
-                        state.ownedDistricts.push(id);
-                        this.gainXp(50);
-                        UI.toast(`${d.name} overgenomen!`);
-                        UI.render();
-                        this.save();
-                    } else { UI.toast("Onvoldoende geld.", true); }
-                }
-            } else {
-                const hasChauffeur = state.crew.some(c => c.role === 'Chauffeur');
-                const isOwned = state.ownedDistricts.includes(id);
-                const travelCost = (hasChauffeur || isOwned) ? 0 : 50;
-                if (state.money < travelCost) return UI.toast("Geen geld voor reisticket.", true);
-                state.money -= travelCost;
-                state.loc = id;
-                UI.toast(`Aangekomen in ${DISTRICTS[id].name}`);
-                 if (Math.random() < 0.1) { this.triggerShadowEvent(); return; }
-                UI.render();
-                this.save();
-            }
-        },
-
-        travel(id) { this.selectDistrict(id); },
-
-        trade(gid) {
-            if (tradeMode === 'buy' && state.loc !== selectedDistrict && selectedDistrict !== null) return UI.toast("Reis hierheen om te kopen.", true);
-            const basePrice = state.prices[state.loc][gid];
-            const invCount = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
-            
-            // Faction discount based on district owner? No, kept simple.
-            const totalCharm = this.getPlayerStat('charm');
-            const charmBonus = (totalCharm * 0.02) + (state.rep / 5000); 
-            const sellPrice = Math.floor(basePrice * 0.85 * (1 + charmBonus));
-
-            if (tradeMode === 'buy') {
-                if (state.money < basePrice) return UI.toast("Te weinig kapitaal.", true);
-                if (invCount >= state.maxInv) return UI.toast("Kofferbak vol.", true);
-                state.money -= basePrice;
-                state.inventory[gid] = (state.inventory[gid] || 0) + 1;
-            } else {
-                if (!state.inventory[gid] || state.inventory[gid] <= 0) return UI.toast("Niet op voorraad.", true);
-                state.money += sellPrice;
-                state.inventory[gid]--;
-                state.rep += 2;
-                this.gainXp(2); 
-            }
-            UI.render();
-            this.save();
-        },
-
-        recruit() {
-            if (state.money < 2500) return UI.toast("Onvoldoende geld.", true);
-            state.money -= 2500;
-            const roles = ['Chauffeur', 'Enforcer', 'Hacker', 'Smokkelaar'];
-            const names = ['Vinny', 'Pauly', 'Luca', 'Vito', 'Rico', 'Bones', 'Tank', 'Mouse', 'Snake', 'Ghost'];
-            state.crew.push({
-                name: names[Math.floor(Math.random()*names.length)],
-                role: roles[Math.floor(Math.random()*roles.length)],
-                hp: 100, xp: 0, level: 1
-            });
-            this.recalcStats();
-            UI.render();
-            this.save();
-        },
-
-        bribePolice() {
-            const totalCharm = this.getPlayerStat('charm');
-            const cost = Math.max(1000, 3500 - (totalCharm * 150));
-            if (state.money < cost) return UI.toast("Te duur.", true);
-            state.money -= cost;
-            state.policeRel = Math.min(100, state.policeRel + 20);
-            state.heat = Math.max(0, state.heat - 10);
-            UI.toast("Politie relatie verbeterd & Heat verlaagd.");
-            UI.render();
-            this.save();
-        },
-
-        // Contract Logic (Faction Based)
-        acceptContract(contractId, crewIdx) {
-            const contract = state.activeContracts.find(c => c.id === contractId);
-            if (!contract) return;
-            
-            const crew = state.crew[crewIdx];
-            const muscle = this.getPlayerStat('muscle');
-            const brains = this.getPlayerStat('brains');
-            let statBonus = (muscle + brains) * 2;
-            let winChance = 100 - contract.risk - (state.heat / 2) + (crew.level * 5) + statBonus;
-
-            UI.closeModal();
-
-            if (Math.random() * 100 < winChance) {
-                state.dirtyMoney += contract.reward;
-                state.rep += 20;
-                state.heat += contract.heat;
-                crew.xp += contract.xp;
-                this.gainXp(contract.xp);
-                
-                // Faction Rep Change
-                state.familyRel[contract.employer] = Math.min(100, (state.familyRel[contract.employer] || 0) + 15);
-                state.familyRel[contract.target] = Math.max(-100, (state.familyRel[contract.target] || 0) - 10);
-                
-                // Remove contract
-                state.activeContracts = state.activeContracts.filter(c => c.id !== contractId);
-
-                if (crew.xp >= 100) { crew.level++; crew.xp = 0; UI.toast("Crew Level Up!"); }
-                UI.toast(`${contract.name} geslaagd! Relatie ${FAMILIES[contract.employer].name} verbeterd.`, false);
-            } else {
-                this.startCombat(crewIdx, { name: "Contract Misgelopen", risk: 50, hp: 80 });
-            }
-            UI.render();
-            this.save();
-        },
-        
-        // Assassination (Endgame)
-        assassinateLeader(fid, crewIdx) {
-            const family = FAMILIES[fid];
-            const crew = state.crew[crewIdx];
-            UI.closeModal();
-            this.startCombat(crewIdx, { name: family.contact + " (BOSS)", risk: 100, hp: 300, isBoss: true, familyId: fid });
-        },
-
-        startCombat(idx, target) {
-            const crew = state.crew[idx];
-            let targetHP = target.hp || 100;
-            let logs = [`[ALARM] ${target.name} (HP:${targetHP}) valt aan!`, `[INFO] Kies je strategie...`];
-            state.activeCombat = { idx, targetName: target.name, targetHP, logs, isBoss: target.isBoss, familyId: target.familyId };
-            this.save();
-            window.Engine.combatState = state.activeCombat;
-            this.restoreCombatUI();
-        },
-
-        restoreCombatUI() {
-            const s = window.Engine.combatState;
-            const idx = s.idx;
-            const targetName = s.targetName;
-            const targetHP = s.targetHP;
-            
-            const stances = `
-                <div style="display:grid; gap:8px;">
-                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'aggro')"><div class="combat-stance-title">AGGRESSIEF</div><div class="combat-stance-desc">Hoog risico, hoge schade. Gebruikt Muscle.</div></button>
-                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'def')"><div class="combat-stance-title">DEFENSIEF</div><div class="combat-stance-desc">Laag risico, lage schade. Spaart HP.</div></button>
-                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'tact')"><div class="combat-stance-title">TACTISCH</div><div class="combat-stance-desc">Gebruikt Vernuft (Brains) om te vuren.</div></button>
-                    <button class="btn" style="margin-top:5px;" onclick="window.Engine.combatFlee()">VLUCHT POGING</button>
-                </div>
-            `;
-            UI.modal("GEVECHT", `<div class="combat-log" id="c-log"></div><div id="combat-ui">${stances}</div>`, " ");
-            this.updateCombatLog();
-        },
-
-        updateCombatLog() {
-            const el = document.getElementById('c-log');
-            if (el && window.Engine.combatState) { 
-                el.innerHTML = window.Engine.combatState.logs.map(l => `<div>${l}</div>`).join(''); 
-                setTimeout(() => el.scrollTop = el.scrollHeight, 10);
-            }
-        },
-
-        combatRound(idx, targetName, targetHP, stance) {
-            const crew = state.crew[idx];
-            if(!crew) return UI.modal("ERROR", "Crewlid niet gevonden.");
-            
-            const logs = window.Engine.combatState.logs;
-            const muscle = this.getPlayerStat('muscle');
-            const brains = this.getPlayerStat('brains');
-            let dmg = 0; let selfDmg = 0;
-            let bonusDmg = (crew.role === 'Enforcer') ? (5 + Math.floor(crew.level * 1.5)) : 0;
-
-            if (stance === 'aggro') {
-                dmg = Math.floor(Math.random() * 25) + 15 + (muscle * 3);
-                selfDmg = Math.floor(Math.random() * 20) + 5;
-                logs.push(`> AGGRO: Je vuurt wild.`);
-            } else if (stance === 'def') {
-                dmg = Math.floor(Math.random() * 15) + 5 + muscle;
-                selfDmg = Math.floor(Math.random() * 10);
-                logs.push(`> DEF: Je zoekt dekking.`);
-            } else if (stance === 'tact') {
-                dmg = Math.floor(Math.random() * 20) + 10 + (brains * 3);
-                selfDmg = Math.floor(Math.random() * 15) + 2;
-                logs.push(`> TACT: Je zoekt zwakke plekken.`);
-            }
-            
-            dmg += bonusDmg;
-            targetHP -= dmg;
-            crew.hp -= selfDmg;
-            state.activeCombat.targetHP = targetHP;
-            state.activeCombat.logs = logs;
-            this.save();
-
-            logs.push(`[HIT] Jij doet -${dmg} schade.`);
-            logs.push(`[HIT] ${targetName} doet -${selfDmg} schade aan jou.`);
-
-            if (targetHP <= 0) {
-                logs.push(`[WIN] ${targetName} is uitgeschakeld!`);
-                crew.xp += 50;
-                this.gainXp(25);
-                
-                // Boss Defeat Logic
-                if (state.activeCombat.isBoss) {
-                     state.leadersDefeated.push(state.activeCombat.familyId);
-                     state.rep += 500;
-                     UI.modal("KINGPIN STATUS", `${targetName} is dood. Hun gebied is nu kwetsbaar.`);
-                } else {
-                     UI.modal("GEWONNEN", "Vijand verslagen. Je crew overleeft.");
-                }
-
-                state.activeCombat = null;
-                this.save();
-                this.checkWinCondition();
-                return;
-            }
-            if (crew.hp <= 0) {
-                state.crew.splice(idx, 1);
-                state.activeCombat = null; 
-                this.recalcStats(); 
-                this.save();
-                UI.modal("VERLOREN", `${crew.name} is gesneuveld in het gevecht.`);
-                return;
-            }
-
-            this.updateCombatLog();
-            const ui = document.getElementById('combat-ui');
-            if(ui) ui.innerHTML = ui.innerHTML; // Hack to refresh buttons if needed
-        },
-
-        combatFlee() {
-             if (Math.random() > 0.5) { 
-                 state.activeCombat = null; this.save();
-                 UI.closeModal(); UI.modal("VLUCHT", "Je bent ontsnapt."); 
-             } else {
-                 const logs = window.Engine.combatState.logs;
-                 logs.push(`> Vlucht mislukt!`);
-                 this.updateCombatLog();
-             }
-        },
-
-        checkWinCondition() {
-            if (state.ownedDistricts.length >= 5 && state.money >= 5000000 && state.leadersDefeated.length >= 3) {
-                 const winHtml = `<div style="color:var(--gold); font-size:1.5rem; text-align:center;">KINGPIN VAN NOXHAVEN</div><p>Je hebt alles. De stad is van jou.</p><p>Dagen: ${state.day} | Vermogen: €${state.money.toLocaleString()}</p>`;
-                 UI.modal("GEWONNEN", winHtml, '<button class="btn btn-action" onclick="window.Engine.reset()">NIEUWE HEERSAPPIJ STARTEN</button>');
-            }
-        }
-    };
-
-    // --- UI Logic ---
+    // UI defined FIRST to avoid ReferenceError
     const UI = {
         showDifficulty() { document.getElementById('menu-main').classList.add('hidden'); document.getElementById('menu-difficulty').classList.remove('hidden'); },
         hideDifficulty() { document.getElementById('menu-difficulty').classList.add('hidden'); document.getElementById('menu-main').classList.remove('hidden'); },
         selectDifficulty(d) { Engine.start(d); },
         showTutorial() {
-            this.modal("HOE TE SPELEN", `<p><b>1. Handel:</b> Koop laag, verkoop hoog.</p><p><b>2. Facties:</b> Voer contracten uit voor families om reputatie te winnen.</p><p><b>3. Lab:</b> Bouw een lab om drugs te produceren.</p><p><b>4. WIN:</b> Dood 3 leiders, bezit 5 districten en €5.000.000.</p>`);
+            const html = `
+                <div style="text-align:left; font-size:0.75rem; line-height:1.6; color:#ccc;">
+                    <div style="margin-bottom:10px;">
+                        <strong style="color:var(--gold); display:block; margin-bottom:2px;">1. HANDEL & GELD</strong>
+                        Koop goederen laag (groene pijl) en reis naar districten waar de prijs hoog is. Let op de <span style="color:var(--gold); border:1px solid var(--gold); padding:0 3px; font-size:0.6rem; border-radius:3px;">VRAAG</span> tag voor +60% winst.
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <strong style="color:var(--blood); display:block; margin-bottom:2px;">2. CREW & COMBAT</strong>
+                        Huur specialisten in het 'Missies' menu. <b>Hackers</b> verlagen Heat, <b>Enforcers</b> doen meer schade, <b>Smokkelaars</b> vergroten je kofferbak en <b>Chauffeurs</b> maken reizen gratis.
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <strong style="color:var(--purple); display:block; margin-bottom:2px;">3. ZWART GELD & DEKMANTELS</strong>
+                        Illegale winst (contracten) is 'Zwart Geld'. Koop <b>Bedrijven</b> (zoals een Nachtclub) om dit automatisch wit te wassen. Alleen wit geld kun je uitgeven aan vastgoed.
+                    </div>
+                    <div style="border-top:1px solid #333; padding-top:10px; margin-top:10px; color:#fff;">
+                        <strong style="color:var(--gold)">HET DOEL (KINGPIN):</strong><br>
+                        1. Elimineer de 3 Familie Bazen (via Onderwereld).<br>
+                        2. Bezit alle 5 Districten.<br>
+                        3. Verzamel €5.000.000 schoon vermogen.
+                    </div>
+                </div>
+            `;
+            this.modal("HANDBOEK VOOR CRIMINELEN", html);
         },
         hideStartScreen() { 
             document.getElementById('start-screen').classList.add('hidden'); 
             document.getElementById('app').classList.remove('hidden'); 
-            if(window.lucide) lucide.createIcons(); 
+            this.ensureIcons();
+        },
+        ensureIcons() {
+             if(window.lucide) window.lucide.createIcons();
         },
         nav(view) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
@@ -1395,8 +713,8 @@
             const bribeCost = Math.max(1000, 3500 - (totalCharm * 150));
             document.getElementById('ui-bribe-cost').innerText = `€${bribeCost.toLocaleString()}`;
 
-            const rankNames = ['Loopjongen', 'Associate', 'Enforcer', 'Capo', 'Underboss', 'Don'];
-            document.getElementById('ui-rank').innerText = rankNames[Math.min(rankNames.length-1, Math.floor(state.rep/500))];
+            const rankNames = ['Loopjongen', 'Associate', 'Soldier', 'Capo', 'Underboss', 'Don', 'Kingpin'];
+            document.getElementById('ui-rank').innerText = rankNames[Math.min(rankNames.length-1, Math.floor(state.rep/300))];
             
             if (state.debt > 75000) document.getElementById('ui-debt').style.color = 'var(--blood)';
             else document.getElementById('ui-debt').style.color = 'white';
@@ -1410,7 +728,7 @@
             this.renderAssets();
             document.getElementById('ui-news').innerText = state.currentNews;
             
-            if(window.lucide) lucide.createIcons();
+            this.ensureIcons();
         },
 
         renderAssets() {
@@ -1473,7 +791,7 @@
                 return `
                 <div class="stat-row">
                     <div style="width:70px; display:flex; gap:6px; align-items:center;"><i data-lucide="${s.icon}" size="14"></i> ${s.label}</div>
-                    <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${(total/20)*100}%; background:var(--gold);"></div></div>
+                    <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${Math.min(100, (total/15)*100)}%; background:var(--gold);"></div></div>
                     <div class="stat-val">${base}${bonusText}</div>
                     <div style="width:25px;">${btn}</div>
                 </div>`;
@@ -1565,7 +883,8 @@
             document.getElementById('ui-loc-market').innerText = DISTRICTS[state.loc].name;
             const alertBox = document.getElementById('ui-market-alert');
             
-            if (state.loc !== selectedDistrict && selectedDistrict !== null) alertBox.style.display = 'block';
+            const isRemote = state.loc !== selectedDistrict && selectedDistrict !== null;
+            if (isRemote) alertBox.style.display = 'block';
             else alertBox.style.display = 'none';
 
             document.getElementById('ui-inv-count').innerText = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
@@ -1578,7 +897,6 @@
             document.getElementById('shop-gear-list').innerHTML = GEAR.map(g => {
                 const owned = state.ownedGear && state.ownedGear.includes(g.id);
                 if (owned) return ''; 
-                // Hide if rep not met
                 if (g.reqRep) {
                      const currentRep = state.familyRel[g.reqRep.f] || 0;
                      if (currentRep < g.reqRep.val) return '';
@@ -1594,15 +912,19 @@
                 const basePrice = prices[g.id] || 0;
                 let displayPrice = basePrice;
                 let priceLabel = "Inkoop";
+                let btnDisabled = false;
                 
                 if (tradeMode === 'sell') {
                      const totalCharm = Engine.getPlayerStat('charm');
                      const charmBonus = (totalCharm * 0.02) + (state.rep / 5000);
                      displayPrice = Math.floor(basePrice * 0.85 * (1 + charmBonus));
                      priceLabel = "Verkoop";
+                     if ((state.inventory[g.id] || 0) <= 0) btnDisabled = true;
+                } else {
+                     if (isRemote) btnDisabled = true;
                 }
 
-                return `<div class="card"><div class="market-item-grid"><div style="display:flex; align-items:center; gap:10px;"><div style="background:#222; padding:8px; border-radius:8px; color:var(--gold)"><i data-lucide="${g.icon}"></i></div><div><div class="card-title">${g.name} <span class="price-trend ${trend}">${state.priceTrends[g.id] === 'up' ? '↑' : '↓'}</span> ${demand === g.id ? '<span class="demand-tag">VRAAG</span>' : ''}</div><div class="card-sub">${priceLabel}: €${displayPrice} | Bezit: ${state.inventory[g.id] || 0}</div></div></div><button class="btn btn-sm btn-gold" onclick="window.Engine.trade('${g.id}')">${tradeMode === 'buy' ? 'KOOP' : 'VERKOOP'}</button></div></div>`;
+                return `<div class="card"><div class="market-item-grid"><div style="display:flex; align-items:center; gap:10px;"><div style="background:#222; padding:8px; border-radius:8px; color:var(--gold)"><i data-lucide="${g.icon}"></i></div><div><div class="card-title">${g.name} <span class="price-trend ${trend}">${state.priceTrends[g.id] === 'up' ? '↑' : '↓'}</span> ${demand === g.id ? '<span class="demand-tag">VRAAG</span>' : ''}</div><div class="card-sub">${priceLabel}: €${displayPrice} | Bezit: ${state.inventory[g.id] || 0}</div></div></div><button class="btn btn-sm btn-gold" ${btnDisabled ? 'disabled style="opacity:0.3"' : ''} onclick="window.Engine.trade('${g.id}')">${tradeMode === 'buy' ? 'KOOP' : 'VERKOOP'}</button></div></div>`;
             }).join('');
         },
 
@@ -1636,7 +958,12 @@
         },
 
         renderCrew() {
-            const comments = ["Klaar voor actie.", "Alles rustig.", "Ik heb een slecht gevoel.", "Waar is het geld?"];
+            const comments = ["Klaar voor actie.", "Alles rustig.", "Ik heb een slecht gevoel.", "Waar is het geld?", "Tijd om te knallen.", "Rustig aan, baas."];
+            if (!state.crew.length) {
+                document.getElementById('crew-list').innerHTML = `<div style="text-align:center; color:#666; padding:10px;">Geen crew. Huur specialisten.</div>`;
+                return;
+            }
+
             document.getElementById('crew-list').innerHTML = state.crew.map((c, i) => {
                 const healthColor = c.hp < 30 ? 'var(--blood)' : '#fff';
                 const healthWarning = c.hp < 30 ? '⚠️' : '';
@@ -1649,7 +976,7 @@
                         </div>
                         <div style="text-align:right">
                             <div class="tag" style="color:${healthColor}">${healthWarning} ${c.hp} HP</div>
-                            ${c.hp < 100 ? `<button class="btn btn-sm btn-heal" style="margin-top:4px;" onclick="window.Engine.healCrew(${i})">GENEES €${(100-c.hp)*10}</button>` : ''}
+                            ${c.hp < 100 ? `<button class="btn btn-sm btn-heal" style="margin-top:4px;" onclick="window.Engine.healCrew(${i})">GENEES €${(100-c.hp)*5}</button>` : ''}
                         </div>
                     </div>
                     <div class="progress-container"><div class="progress-fill" style="width:${c.xp}%; background:var(--gold);"></div></div>
@@ -1718,6 +1045,747 @@
             else t.classList.remove('toast-red');
             t.style.display = 'block'; 
             setTimeout(() => t.style.display = 'none', 3000); 
+        }
+    };
+
+    const Engine = {
+        async init() {
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) throw new Error("Local Mode");
+                const config = JSON.parse(__firebase_config);
+                const app = initializeApp(config);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                await signInAnonymously(auth);
+                onAuthStateChanged(auth, async (u) => {
+                    user = u;
+                    if (user) await this.load();
+                });
+            } catch (e) {
+                console.log("Overschakelen naar offline modus:", e);
+                useLocalStorage = true;
+                this.load();
+            }
+        },
+
+        async load() {
+            let loadedState = null;
+            if (useLocalStorage) {
+                const localData = localStorage.getItem('noxhaven_save');
+                if (localData) loadedState = JSON.parse(localData);
+            } else if (user && db) {
+                try {
+                    const snap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'));
+                    if (snap.exists()) loadedState = snap.data();
+                } catch(e) { console.error("Load error, falling back to local", e); }
+            }
+
+            if (loadedState) {
+                state = loadedState;
+                this.checkSaveIntegrity(); 
+                this.recalcStats(); 
+                UI.hideStartScreen();
+                this.generatePrices(false); 
+                selectedDistrict = state.loc;
+                
+                if (state.activeCombat) {
+                    window.Engine.combatState = state.activeCombat;
+                    this.restoreCombatUI();
+                }
+                UI.render();
+            }
+        },
+
+        checkSaveIntegrity() {
+            if (!state.version || state.version < 6.0) state.version = 6.0; 
+            if (!state.player) state.player = { level: 1, xp: 0, nextXp: 100, skillPoints: 0, stats: { muscle: 1, brains: 1, charm: 1 }, loadout: { weapon: null, armor: null, gadget: null } };
+            if (!state.ownedGear) state.ownedGear = [];
+            if (!state.ownedBusinesses) state.ownedBusinesses = [];
+            if (!state.prices) state.prices = {};
+            if (!state.districtDemands) state.districtDemands = {};
+            if (!state.priceTrends) state.priceTrends = {};
+            if (state.activeCombat === undefined) state.activeCombat = null;
+            if (state.maxInv === undefined) state.maxInv = 15;
+            
+            if (!state.activeContracts) state.activeContracts = [];
+            if (!state.lab) state.lab = { chemicals: 0 };
+            if (!state.leadersDefeated) state.leadersDefeated = [];
+            
+            // Safe XP cap fix
+            if (state.player.nextXp > 50000) state.player.nextXp = 5000;
+            
+            // Ensure 3 contracts exist
+            if (state.activeContracts.length === 0) this.generateContracts();
+        },
+
+        recalcStats() {
+            let inv = 15; 
+            if (state.hqUpgrades.includes('garage')) inv += 10;
+            const smugglers = state.crew.filter(c => c.role === 'Smokkelaar').length;
+            inv += (smugglers * 5);
+            state.maxInv = inv;
+        },
+
+        async save() {
+            if (!state) return;
+            state.version = 6.0; 
+            try {
+                if (useLocalStorage) {
+                    localStorage.setItem('noxhaven_save', JSON.stringify(state));
+                } else if (user && db) {
+                    await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'), state);
+                }
+            } catch (e) {
+                console.error("Save failed", e);
+                localStorage.setItem('noxhaven_save', JSON.stringify(state)); // Always backup locally
+            }
+        },
+
+        async reset() {
+            if (confirm("Weet je zeker dat je alles wilt wissen?")) {
+                localStorage.removeItem('noxhaven_save');
+                if (user && db) {
+                    try { await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game')); } catch(e){}
+                }
+                state = null;
+                location.reload();
+            }
+        },
+
+        start(diff) {
+            let money = 5000, debt = 12000, heat = 0;
+            if (diff === 'easy') { money = 12000; debt = 0; }
+            if (diff === 'hard') { money = 1500; debt = 25000; heat = 15; }
+
+            state = {
+                version: 6.0,
+                day: 1, money: money, dirtyMoney: 0, rep: 0, hp: 100, heat: heat, debt: debt,
+                loc: 'low', maxInv: 15, inventory: { drugs: 0, weapons: 0, tech: 0, luxury: 0, meds: 0 },
+                crew: [], ownedDistricts: [], hqUpgrades: [], ownedGear: [], ownedBusinesses: [], policeRel: 20, 
+                familyRel: { cartel: 0, syndicate: 0, bikers: 0 },
+                activeContracts: [],
+                lab: { chemicals: 0 },
+                leadersDefeated: [],
+                prices: {}, priceTrends: {}, districtDemands: {},
+                currentNews: NEWS_HEADLINES[0], difficulty: diff,
+                activeCombat: null,
+                player: {
+                    level: 1, xp: 0, nextXp: 100, skillPoints: 0,
+                    stats: { muscle: 1, brains: 1, charm: 1 },
+                    loadout: { weapon: null, armor: null, gadget: null }
+                }
+            };
+            
+            this.generateContracts();
+            UI.hideStartScreen();
+            this.generatePrices(true);
+            selectedDistrict = state.loc;
+            UI.render();
+            this.save();
+        },
+
+        generatePrices(force = false) {
+            if (!force && state.prices && Object.keys(state.prices).length > 0) return;
+            state.prices = {};
+            state.districtDemands = {}; 
+            Object.keys(DISTRICTS).forEach(id => {
+                state.prices[id] = {};
+                state.districtDemands[id] = Math.random() > 0.8 ? GOODS[Math.floor(Math.random()*GOODS.length)].id : null;
+                GOODS.forEach(g => {
+                    const volatility = 0.6 + (Math.random() * 0.8);
+                    const demandMod = (state.districtDemands[id] === g.id) ? 1.6 : 1.0;
+                    const newPrice = Math.floor(g.base * volatility * DISTRICTS[id].mods[g.id] * demandMod);
+                    state.prices[id][g.id] = newPrice;
+                    state.priceTrends[g.id] = Math.random() > 0.5 ? 'up' : 'down';
+                });
+            });
+        },
+        
+        generateContracts() {
+            state.activeContracts = [];
+            for(let i=0; i<3; i++) {
+                const template = CONTRACT_TEMPLATES[Math.floor(Math.random() * CONTRACT_TEMPLATES.length)];
+                const factionKeys = Object.keys(FAMILIES);
+                const employer = factionKeys[Math.floor(Math.random() * factionKeys.length)];
+                let target = factionKeys[Math.floor(Math.random() * factionKeys.length)];
+                while(target === employer) target = factionKeys[Math.floor(Math.random() * factionKeys.length)];
+                
+                let risk = Math.min(90, template.risk + (state.day / 2));
+                
+                state.activeContracts.push({
+                    id: Date.now() + i,
+                    name: template.name,
+                    type: template.type,
+                    employer: employer,
+                    target: target,
+                    risk: Math.floor(risk),
+                    heat: template.heat,
+                    reward: Math.floor(template.rewardBase * (1 + (state.day * 0.05))),
+                    xp: 35 + (state.day * 2)
+                });
+            }
+        },
+
+        async endTurn() {
+            if (state.debt > 250000) { 
+                const gameOverHtml = `<div style="color:red; font-weight:bold; margin-bottom:10px;">DE SCHULD IS TE HOOG</div><p>De schuldeisers hebben je gevonden.</p>`;
+                UI.modal("GAME OVER", gameOverHtml, '<button class="btn btn-action" onclick="window.Engine.reset()">HERSTART SPEL</button>');
+                return;
+            }
+
+            // LAB LOGIC FIXED: Check inventory space before production
+            let labYield = 0;
+            if (state.hqUpgrades.includes('lab') && state.lab.chemicals > 0) {
+                const currentInv = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
+                const space = state.maxInv - currentInv;
+                
+                if (space > 0) {
+                    const batchSize = Math.min(state.lab.chemicals, 20, space); 
+                    state.lab.chemicals -= batchSize;
+                    state.inventory['drugs'] = (state.inventory['drugs'] || 0) + batchSize;
+                    labYield = batchSize;
+                    state.heat += 4; 
+                }
+            }
+
+            state.day++;
+            
+            // Income
+            const districtInc = state.ownedDistricts.reduce((s, id) => s + DISTRICTS[id].income, 0);
+            let businessInc = 0;
+            let totalWashed = 0;
+            if(state.ownedBusinesses) {
+                state.ownedBusinesses.forEach(bid => {
+                    const biz = BUSINESSES.find(b => b.id === bid);
+                    if(biz) {
+                        businessInc += biz.income;
+                        let washAmount = Math.min(state.dirtyMoney, biz.clean);
+                        state.dirtyMoney -= washAmount;
+                        state.money += washAmount; 
+                        totalWashed += washAmount;
+                    }
+                });
+            }
+
+            state.money += (districtInc + businessInc);
+            if(state.debt > 0) state.debt = Math.floor(state.debt * 1.015); // 1.5% interest
+            
+            // Heat reduction
+            const totalBrains = this.getPlayerStat('brains');
+            let heatDrop = 8 + Math.floor(totalBrains / 2); 
+            if(state.hqUpgrades.includes('server')) heatDrop += 10;
+            const hackers = state.crew.filter(c => c.role === 'Hacker').length;
+            heatDrop += (hackers * 3);
+            state.heat = Math.max(0, state.heat - heatDrop);
+
+            // Feedback
+            let feedback = `Winst: €${(districtInc + businessInc).toLocaleString()}`;
+            if (totalWashed > 0) feedback += ` | Wit: €${totalWashed.toLocaleString()}`;
+            if (labYield > 0) feedback += ` | Lab: +${labYield} Drugs`;
+            
+            UI.toast(feedback, false);
+
+            // Events
+            if (state.heat > 80 && Math.random() < 0.20) return this.triggerBountyHunter();
+            if (state.ownedDistricts.length > 0 && Math.random() < 0.12) return this.triggerRivalAttack();
+            if (Math.random() < 0.15) { this.triggerShadowEvent(); return; }
+
+            state.currentNews = NEWS_HEADLINES[Math.floor(Math.random() * NEWS_HEADLINES.length)];
+            this.generatePrices(true);
+            this.generateContracts(); 
+            UI.render();
+            await this.save();
+        },
+
+        triggerShadowEvent() {
+            const evt = SHADOW_EVENTS[Math.floor(Math.random() * SHADOW_EVENTS.length)];
+            let html = `<p>${evt.text}</p><div style="display:flex; flex-direction:column; gap:8px; margin-top:15px;">`;
+            evt.options.forEach((opt, idx) => {
+                html += `<button class="btn btn-choice" onclick="window.Engine.resolveShadowEvent('${evt.title}', '${opt.action}', ${opt.cost || 0})">${opt.text}</button>`;
+            });
+            html += `</div>`;
+            UI.modal(evt.title, html, " ");
+        },
+
+        resolveShadowEvent(title, action, cost) {
+            UI.closeModal();
+            if (cost > 0 && state.money < cost) return UI.toast("Niet genoeg geld!", true);
+            if (cost > 0) state.money -= cost;
+
+            if (action === 'bribe' || action === 'pay') {
+                UI.toast("Betaald. Je bent veilig.", false);
+            } else if (action === 'run') {
+                if (Math.random() > 0.5) UI.toast("Ontsnapt!", false);
+                else { state.heat += 15; UI.toast("Gepakt! Heat +15%", true); }
+            } else if (action === 'fight') {
+                this.startCombat(0, { name: "Gangster", risk: 50, hp: 60 }); 
+                return;
+            } else if (action === 'deal') {
+                state.inventory['drugs'] = (state.inventory['drugs'] || 0) + 1;
+                UI.toast("Deal gesloten.", false);
+            } else if (action === 'loot') {
+                state.money += 1000;
+                UI.toast("Geld in de zak.", false);
+            }
+            this.generatePrices(true);
+            UI.render();
+            this.save();
+        },
+
+        getPlayerStat(statName) {
+            let total = state.player.stats[statName];
+            Object.values(state.player.loadout).forEach(itemId => {
+                if (itemId) {
+                    const item = GEAR.find(g => g.id === itemId);
+                    if (item && item.stats && item.stats[statName]) total += item.stats[statName];
+                }
+            });
+            return total;
+        },
+
+        gainXp(amount) {
+            state.player.xp += amount;
+            // FIX: Using while loop to handle multi-level ups
+            while (state.player.xp >= state.player.nextXp) {
+                state.player.xp -= state.player.nextXp;
+                state.player.level++;
+                state.player.nextXp = Math.floor(state.player.nextXp * 1.25);
+                state.player.skillPoints++;
+                UI.toast(`LEVEL UP! Nu level ${state.player.level}`);
+            }
+        },
+
+        upgradeStat(stat) {
+            if (state.player.skillPoints > 0) {
+                state.player.stats[stat]++;
+                state.player.skillPoints--;
+                UI.render();
+                this.save();
+            }
+        },
+
+        buyGear(id) {
+            const item = GEAR.find(g => g.id === id);
+            if (state.ownedGear && state.ownedGear.includes(id)) return UI.toast("Al in bezit.");
+            if (item.reqRep) {
+                if ((state.familyRel[item.reqRep.f] || 0) < item.reqRep.val) return UI.toast(`Vereist ${item.reqRep.val} Rep bij ${FAMILIES[item.reqRep.f].name}.`, true);
+            }
+            if (state.money < item.cost) return UI.toast("Te weinig geld.", true);
+            state.money -= item.cost;
+            if (!state.ownedGear) state.ownedGear = [];
+            state.ownedGear.push(id);
+            UI.toast(`${item.name} gekocht.`);
+            UI.render();
+            this.save();
+        },
+
+        buyBusiness(id) {
+            const biz = BUSINESSES.find(b => b.id === id);
+            if (state.ownedBusinesses && state.ownedBusinesses.includes(id)) return UI.toast("Al in bezit.");
+            if (state.money < biz.cost) return UI.toast("Onvoldoende kapitaal.", true);
+            state.money -= biz.cost;
+            if(!state.ownedBusinesses) state.ownedBusinesses = [];
+            state.ownedBusinesses.push(id);
+            this.gainXp(100);
+            UI.toast(`${biz.name} aangeschaft!`);
+            UI.render();
+            this.save();
+        },
+        
+        buyPrecursors() {
+            if (state.money < 500) return UI.toast("Te weinig geld (€500 nodig).", true);
+            state.money -= 500;
+            state.lab.chemicals += 10;
+            UI.toast("10 Chemicaliën gekocht.");
+            UI.render();
+            this.save();
+        },
+
+        equip(id) {
+            const item = GEAR.find(g => g.id === id);
+            if (!item) return;
+            state.player.loadout[item.type] = id;
+            UI.toast(`${item.name} uitgerust.`);
+            UI.render();
+            this.save();
+        },
+
+        unequip(slot) {
+            if (state.player.loadout[slot]) {
+                state.player.loadout[slot] = null;
+                UI.render();
+                this.save();
+            }
+        },
+        
+        healCrew(idx) {
+            const crew = state.crew[idx];
+            if (!crew) return;
+            const missing = 100 - crew.hp;
+            if (missing <= 0) return UI.toast("Al gezond.");
+            const cost = missing * 5; 
+            if (state.money < cost) return UI.toast(`Dokter kost €${cost}.`, true);
+            state.money -= cost;
+            crew.hp = 100;
+            UI.toast(`${crew.name} genezen.`);
+            UI.render();
+            this.save();
+        },
+
+        promptPayDebt() {
+            if (state.debt <= 0) return UI.toast("Geen schuld.");
+            const maxPay = Math.min(state.money, state.debt);
+            const content = `<p>Huidige schuld: <span style="color:var(--blood)">€${state.debt.toLocaleString()}</span></p><p>Beschikbaar: €${state.money.toLocaleString()}</p>`;
+            const actions = `<button class="btn btn-gold" onclick="window.Engine.payDebt(5000)">BETAAL €5.000</button><button class="btn btn-action" onclick="window.Engine.payDebt(${maxPay})">BETAAL MAX (€${maxPay.toLocaleString()})</button><button class="btn" onclick="window.UI.closeModal()">ANNULEREN</button>`;
+            UI.modal("WOEKERAAR TERUGBETALEN", content, actions);
+        },
+
+        payDebt(amount) {
+            if (state.money < amount) return UI.toast("Onvoldoende geld.", true);
+            if (state.debt <= 0) return;
+            amount = Math.min(amount, state.debt);
+            state.money -= amount;
+            state.debt -= amount;
+            UI.closeModal();
+            UI.toast(`€${amount.toLocaleString()} afgelost.`);
+            UI.render();
+            this.save();
+        },
+
+        triggerBountyHunter() {
+            let actions = '';
+            state.crew.forEach((c, i) => { actions += `<button class="btn btn-choice" onclick="window.Engine.startCombat(${i}, {name: 'Hunter', risk: 80, hp: 100})">Stuur ${c.name}</button>`; });
+            actions += `<button class="btn btn-action" onclick="window.Engine.surrenderBounty()">Betaal premie (€5.000)</button>`;
+            UI.modal("BOUNTY HUNTER!", "Een Bounty Hunter heeft je HQ gevonden!", actions);
+        },
+
+        surrenderBounty() {
+            if (state.money < 5000) return UI.toast("Niet genoeg geld!", true);
+            state.money -= 5000;
+            state.heat = 20;
+            UI.closeModal();
+            UI.toast("Premie betaald.", false);
+            this.endTurn();
+        },
+
+        triggerRivalAttack() {
+            const id = state.ownedDistricts[Math.floor(Math.random()*state.ownedDistricts.length)];
+            const d = DISTRICTS[id];
+            let actions = '';
+            let defenseBonus = state.hqUpgrades.includes('security') ? 30 : 0;
+            defenseBonus += (this.getPlayerStat('muscle') * 3);
+            state.crew.forEach((c, i) => { actions += `<button class="btn btn-choice" onclick="window.Engine.defendDistrict('${id}', ${i}, ${defenseBonus})">Verdedig met ${c.name}</button>`; });
+            actions += `<button class="btn btn-action" onclick="window.Engine.loseDistrict('${id}')">Geef district op</button>`;
+            UI.modal("RIVALERENDE AANVAL", `Rivalen vallen <b>${d.name}</b> aan!`, actions);
+        },
+
+        defendDistrict(id, idx, bonus) {
+            if ((Math.random() * 100) < (50 + bonus)) { 
+                UI.closeModal();
+                UI.toast("Aanval afgeslagen!");
+                state.crew[idx].xp += 20;
+                this.gainXp(10);
+                this.endTurn();
+            } else {
+                this.startCombat(idx, { name: "Bendeoorlog", risk: 50, hp: 80 });
+            }
+        },
+
+        loseDistrict(id) {
+            state.ownedDistricts = state.ownedDistricts.filter(x => x !== id);
+            UI.closeModal();
+            UI.toast("Sector verloren.", true);
+            this.endTurn();
+        },
+
+        washMoney() {
+            if (state.dirtyMoney <= 0) return UI.toast("Geen zwart geld.", true);
+            const amount = Math.min(state.dirtyMoney, 3000 + (state.ownedDistricts.length * 1000));
+            state.dirtyMoney -= amount;
+            state.money += Math.floor(amount * 0.85);
+            state.heat += 8;
+            this.gainXp(5);
+            UI.toast(`€${amount} witgewassen.`);
+            UI.render();
+            this.save();
+        },
+
+        buyUpgrade(id) {
+            const upg = HQ_UPGRADES.find(u => u.id === id);
+            if(state.hqUpgrades.includes(id)) return UI.toast("Al in bezit.");
+            if(state.money < upg.cost) return UI.toast("Te weinig geld.", true);
+            state.money -= upg.cost;
+            state.hqUpgrades.push(id);
+            this.recalcStats();
+            UI.toast(`${upg.name} geïnstalleerd.`);
+            UI.render();
+            this.save();
+        },
+        
+        selectDistrict(id) { selectedDistrict = id; UI.renderMap(); },
+
+        performDistrictAction() {
+            const id = selectedDistrict;
+            if(!id) return;
+            
+            if (state.loc === id) {
+                const d = DISTRICTS[id];
+                if (!state.ownedDistricts.includes(id)) {
+                    if (state.money >= d.cost) {
+                        state.money -= d.cost;
+                        state.ownedDistricts.push(id);
+                        this.gainXp(50);
+                        UI.toast(`${d.name} overgenomen!`);
+                        UI.render();
+                        this.save();
+                    } else { UI.toast("Onvoldoende geld.", true); }
+                }
+            } else {
+                const hasChauffeur = state.crew.some(c => c.role === 'Chauffeur');
+                const isOwned = state.ownedDistricts.includes(id);
+                const travelCost = (hasChauffeur || isOwned) ? 0 : 50;
+                if (state.money < travelCost) return UI.toast("Geen geld voor reisticket.", true);
+                state.money -= travelCost;
+                state.loc = id;
+                UI.toast(`Aangekomen in ${DISTRICTS[id].name}`);
+                 if (Math.random() < 0.1) { this.triggerShadowEvent(); return; }
+                UI.render();
+                this.save();
+            }
+        },
+
+        travel(id) { this.selectDistrict(id); },
+
+        trade(gid) {
+            if (tradeDebounce) return;
+            tradeDebounce = true;
+            setTimeout(() => tradeDebounce = false, 200);
+
+            if (tradeMode === 'buy' && state.loc !== selectedDistrict && selectedDistrict !== null) return UI.toast("Reis hierheen om te kopen.", true);
+            const basePrice = state.prices[state.loc][gid];
+            
+            const totalCharm = this.getPlayerStat('charm');
+            const charmBonus = (totalCharm * 0.02) + (state.rep / 5000); 
+            const buyPrice = basePrice;
+            const sellPrice = Math.floor(basePrice * 0.85 * (1 + charmBonus));
+
+            if (tradeMode === 'buy') {
+                const invCount = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
+                if (state.money < buyPrice) return UI.toast("Te weinig kapitaal.", true);
+                if (invCount >= state.maxInv) return UI.toast("Kofferbak vol.", true);
+                state.money -= buyPrice;
+                state.inventory[gid] = (state.inventory[gid] || 0) + 1;
+            } else {
+                if (!state.inventory[gid] || state.inventory[gid] <= 0) return UI.toast("Niet op voorraad.", true);
+                state.money += sellPrice;
+                state.inventory[gid]--;
+                state.rep += 2;
+                this.gainXp(2); 
+            }
+            UI.render();
+            this.save();
+        },
+
+        recruit() {
+            if (state.money < 2500) return UI.toast("Onvoldoende geld.", true);
+            state.money -= 2500;
+            const roles = ['Chauffeur', 'Enforcer', 'Hacker', 'Smokkelaar'];
+            const names = ['Vinny', 'Pauly', 'Luca', 'Vito', 'Rico', 'Bones', 'Tank', 'Mouse', 'Snake', 'Ghost'];
+            state.crew.push({
+                name: names[Math.floor(Math.random()*names.length)],
+                role: roles[Math.floor(Math.random()*roles.length)],
+                hp: 100, xp: 0, level: 1
+            });
+            this.recalcStats();
+            UI.render();
+            this.save();
+        },
+
+        bribePolice() {
+            const totalCharm = this.getPlayerStat('charm');
+            const cost = Math.max(1000, 3500 - (totalCharm * 150));
+            if (state.money < cost) return UI.toast("Te duur.", true);
+            state.money -= cost;
+            state.policeRel = Math.min(100, state.policeRel + 20);
+            state.heat = Math.max(0, state.heat - 15); 
+            UI.toast("Politie relatie verbeterd & Heat verlaagd.");
+            UI.render();
+            this.save();
+        },
+
+        acceptContract(contractId, crewIdx) {
+            // FIX: Convert ID to number because HTML onclick passes it as string
+            const cId = Number(contractId);
+            const contract = state.activeContracts.find(c => c.id === cId);
+            if (!contract) return;
+            
+            const crew = state.crew[crewIdx];
+            const muscle = this.getPlayerStat('muscle');
+            const brains = this.getPlayerStat('brains');
+            let statBonus = (muscle + brains) * 2.5;
+            
+            const heatPenalty = Math.min(30, state.heat / 2);
+            let winChance = 100 - contract.risk - heatPenalty + (crew.level * 6) + statBonus;
+
+            UI.closeModal();
+
+            if (Math.random() * 100 < winChance) {
+                state.dirtyMoney += contract.reward;
+                state.rep += 20;
+                state.heat += contract.heat;
+                crew.xp += contract.xp;
+                this.gainXp(contract.xp);
+                
+                state.familyRel[contract.employer] = Math.min(100, (state.familyRel[contract.employer] || 0) + 15);
+                state.familyRel[contract.target] = Math.max(-100, (state.familyRel[contract.target] || 0) - 10);
+                
+                // FIX: Use number ID for filtering
+                state.activeContracts = state.activeContracts.filter(c => c.id !== cId);
+
+                if (crew.xp >= 100) { crew.level++; crew.xp = 0; UI.toast(`${crew.name} Level Up!`); }
+                UI.toast(`${contract.name} geslaagd! Relatie ${FAMILIES[contract.employer].name} verbeterd.`, false);
+            } else {
+                this.startCombat(crewIdx, { name: "Contract Mislukt", risk: 50, hp: 60 });
+            }
+            UI.render();
+            this.save();
+        },
+        
+        assassinateLeader(fid, crewIdx) {
+            const family = FAMILIES[fid];
+            const crew = state.crew[crewIdx];
+            UI.closeModal();
+            this.startCombat(crewIdx, { name: family.contact + " (BOSS)", risk: 100, hp: 250, isBoss: true, familyId: fid });
+        },
+
+        startCombat(idx, target) {
+            const crew = state.crew[idx];
+            if (!crew) { UI.toast("Crew niet gevonden"); return; }
+            
+            let targetHP = target.hp || 100;
+            let logs = [`[ALARM] ${target.name} (HP:${targetHP}) valt aan!`, `[INFO] Kies je strategie...`];
+            state.activeCombat = { 
+                idx, 
+                targetName: target.name, 
+                targetHP, 
+                logs, 
+                isBoss: target.isBoss || false, 
+                familyId: target.familyId || null
+            };
+            this.save();
+            window.Engine.combatState = state.activeCombat;
+            this.restoreCombatUI();
+        },
+
+        restoreCombatUI() {
+            const s = window.Engine.combatState;
+            if(!s) return;
+            const idx = s.idx;
+            const targetName = s.targetName;
+            const targetHP = s.targetHP;
+            
+            const stances = `
+                <div style="display:grid; gap:8px;">
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'aggro')"><div class="combat-stance-title">AGGRESSIEF</div><div class="combat-stance-desc">Hoog risico, hoge schade. Gebruikt Muscle.</div></button>
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'def')"><div class="combat-stance-title">DEFENSIEF</div><div class="combat-stance-desc">Laag risico, lage schade. Spaart HP.</div></button>
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'tact')"><div class="combat-stance-title">TACTISCH</div><div class="combat-stance-desc">Gebruikt Vernuft (Brains) om te vuren.</div></button>
+                    <button class="btn" style="margin-top:5px;" onclick="window.Engine.combatFlee()">VLUCHT POGING</button>
+                </div>
+            `;
+            UI.modal("GEVECHT", `<div class="combat-log" id="c-log"></div><div id="combat-ui">${stances}</div>`, " ");
+            this.updateCombatLog();
+        },
+
+        updateCombatLog() {
+            const el = document.getElementById('c-log');
+            if (el && window.Engine.combatState) { 
+                el.innerHTML = window.Engine.combatState.logs.map(l => `<div>${l}</div>`).join(''); 
+                setTimeout(() => el.scrollTop = el.scrollHeight, 10);
+            }
+        },
+
+        combatRound(idx, targetName, targetHP, stance) {
+            const crew = state.crew[idx];
+            if(!crew) { UI.closeModal(); UI.toast("Combat Error: Crew missing"); return; }
+            
+            const logs = window.Engine.combatState.logs;
+            const muscle = this.getPlayerStat('muscle');
+            const brains = this.getPlayerStat('brains');
+            let dmg = 0; let selfDmg = 0;
+            let bonusDmg = (crew.role === 'Enforcer') ? (5 + Math.floor(crew.level * 2)) : 0;
+
+            if (stance === 'aggro') {
+                dmg = Math.floor(Math.random() * 25) + 15 + (muscle * 3);
+                selfDmg = Math.floor(Math.random() * 15) + 5; 
+                logs.push(`> AGGRO: Je vuurt wild.`);
+            } else if (stance === 'def') {
+                dmg = Math.floor(Math.random() * 15) + 5 + muscle;
+                selfDmg = Math.floor(Math.random() * 8); 
+                logs.push(`> DEF: Je zoekt dekking.`);
+            } else if (stance === 'tact') {
+                dmg = Math.floor(Math.random() * 20) + 10 + (brains * 3);
+                selfDmg = Math.floor(Math.random() * 12) + 2;
+                logs.push(`> TACT: Je zoekt zwakke plekken.`);
+            }
+            
+            dmg += bonusDmg;
+            targetHP -= dmg;
+            crew.hp -= selfDmg;
+            state.activeCombat.targetHP = targetHP;
+            state.activeCombat.logs = logs;
+            this.save();
+
+            logs.push(`<span style="color:#adffad">[HIT] Jij doet -${dmg} schade.</span>`);
+            logs.push(`<span style="color:#ffadad">[HIT] ${targetName} doet -${selfDmg} schade aan jou.</span>`);
+
+            if (targetHP <= 0) {
+                logs.push(`[WIN] ${targetName} is uitgeschakeld!`);
+                crew.xp += 50;
+                this.gainXp(25);
+                
+                if (state.activeCombat.isBoss) {
+                     state.leadersDefeated.push(state.activeCombat.familyId);
+                     state.rep += 500;
+                     UI.modal("KINGPIN STATUS", `${targetName} is dood. Hun gebied is nu kwetsbaar.`);
+                } else {
+                     UI.modal("GEWONNEN", "Vijand verslagen. Je crew overleeft.");
+                }
+
+                state.activeCombat = null;
+                this.save();
+                this.checkWinCondition();
+                return;
+            }
+            if (crew.hp <= 0) {
+                state.crew.splice(idx, 1);
+                state.activeCombat = null; 
+                this.recalcStats(); 
+                this.save();
+                UI.modal("VERLOREN", `${crew.name} is gesneuveld in het gevecht.`);
+                return;
+            }
+
+            this.updateCombatLog();
+            const ui = document.getElementById('combat-ui');
+            if(ui) ui.innerHTML = ui.innerHTML;
+        },
+
+        combatFlee() {
+             if (Math.random() > 0.4) { 
+                 state.activeCombat = null; this.save();
+                 UI.closeModal(); UI.modal("VLUCHT", "Je bent ontsnapt."); 
+             } else {
+                 const logs = window.Engine.combatState.logs;
+                 logs.push(`> Vlucht mislukt!`);
+                 this.updateCombatLog();
+             }
+        },
+
+        checkWinCondition() {
+            if (state.ownedDistricts.length >= 5 && state.money >= 5000000 && state.leadersDefeated.length >= 3) {
+                 const winHtml = `<div style="color:var(--gold); font-size:1.5rem; text-align:center;">KINGPIN VAN NOXHAVEN</div><p>Je hebt alles. De stad is van jou.</p><p>Dagen: ${state.day} | Vermogen: €${state.money.toLocaleString()}</p>`;
+                 UI.modal("GEWONNEN", winHtml, '<button class="btn btn-action" onclick="window.Engine.reset()">NIEUWE HEERSAPPIJ STARTEN</button>');
+            }
         }
     };
 
