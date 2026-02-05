@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noxhaven: Blood & Empire - Kingpin Polished</title>
+    <title>Noxhaven: Blood & Empire - Casino Update</title>
     <!-- Externe Icon Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -104,6 +104,23 @@
         }
         .shake-anim { animation: shake 0.5s; }
 
+        /* Casino Styles */
+        .casino-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .game-card { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+        .game-card:hover { border-color: var(--gold); background: #222; }
+        .game-icon { color: var(--gold); margin-bottom: 10px; }
+        
+        .playing-card { display: inline-block; width: 40px; height: 56px; background: #eee; color: #000; border-radius: 4px; margin: 2px; line-height: 56px; text-align: center; font-weight: 800; font-family: 'Courier New', monospace; box-shadow: 1px 1px 4px rgba(0,0,0,0.6); font-size: 1.1rem; border: 2px solid #fff; }
+        .playing-card.red { color: var(--blood); }
+        .playing-card.black { color: #000; }
+        .playing-card.back { background: repeating-linear-gradient(45deg, #b91c1c, #b91c1c 5px, #991b1b 5px, #991b1b 10px); color: transparent; border-color: #881313; }
+
+        .slot-reel { display: inline-block; width: 60px; height: 70px; background: #000; border: 2px solid var(--gold); color: #fff; line-height: 70px; font-size: 32px; margin: 4px; border-radius: 6px; text-align: center; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .roulette-btn { flex: 1; padding: 15px 5px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); }
+        .r-red { background: var(--blood); color: white; }
+        .r-black { background: #111; color: white; }
+        .r-green { background: var(--green); color: white; border: 1px solid var(--gold); }
+
         .card { 
             background: var(--card); border: 1px solid var(--border); border-radius: 8px; 
             padding: 12px; margin-bottom: 10px; position: relative; transition: all 0.2s; 
@@ -201,11 +218,12 @@
             padding-bottom: env(safe-area-inset-bottom);
             background: rgba(10, 10, 10, 0.98); border-top: 1px solid var(--border); 
             display: flex; justify-content: space-around; align-items: center; z-index: 1000; 
+            overflow-x: auto; /* Allow scrolling if too wide */
         }
         .nav-btn { 
             background: none; border: none; color: #555; display: flex; flex-direction: column; 
-            align-items: center; gap: 4px; font-size: 0.6rem; cursor: pointer; width: 20%; transition: 0.2s; 
-            font-weight: 600; padding: 10px 0; 
+            align-items: center; gap: 4px; font-size: 0.6rem; cursor: pointer; transition: 0.2s; 
+            font-weight: 600; padding: 10px 0; min-width: 60px; flex: 1;
         }
         .nav-btn.active { color: var(--gold); }
         .nav-btn i { stroke-width: 2px; }
@@ -253,7 +271,7 @@
         <div style="margin-bottom: 40px;">
             <div style="font-family: var(--font-main); color: var(--blood); font-size: 3.5rem; font-weight: bold; letter-spacing: 8px; margin-bottom: 5px; text-shadow: 0 0 30px rgba(185, 28, 28, 0.6);">NOXHAVEN</div>
             <div style="color: var(--gold); letter-spacing: 4px; font-size: 0.8rem; font-weight: 600; opacity: 0.8;">KINGPIN UPDATE</div>
-            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.1 (POLISHED)</div>
+            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.2 (CASINO EDITION)</div>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
             <button class="btn btn-action" onclick="window.UI.showDifficulty()">NIEUWE OPERATIE</button>
@@ -543,15 +561,48 @@
             <div style="font-size:0.7rem; color:#888; margin-bottom:10px;">Contracten veranderen elke nacht.</div>
             <div id="crimes-list"></div>
         </div>
+
+        <div id="view-casino" class="view-section hidden">
+            <div class="section-header"><span class="section-title">THE VELVET ROOM</span></div>
+            <div style="text-align:center; margin-bottom:20px; color:#888; font-size:0.75rem;">
+                "Het huis wint altijd... tenzij jij vals speelt."<br>
+                <span style="color:var(--gold); font-size:0.9rem; font-weight:bold;">Beschikbaar: €<span id="ui-casino-money">0</span></span>
+            </div>
+
+            <div id="casino-menu" class="casino-grid">
+                <div class="game-card" onclick="window.Engine.openGame('blackjack')">
+                    <i data-lucide="spade" class="game-icon" size="32"></i>
+                    <div style="font-weight:bold; color:#fff;">BLACKJACK</div>
+                    <div style="font-size:0.65rem; color:#666;">2x Uitbetaling</div>
+                </div>
+                <div class="game-card" onclick="window.Engine.openGame('roulette')">
+                    <i data-lucide="circle-dot" class="game-icon" size="32"></i>
+                    <div style="font-weight:bold; color:#fff;">ROULETTE</div>
+                    <div style="font-size:0.65rem; color:#666;">Tot 14x Uitbetaling</div>
+                </div>
+                <div class="game-card" onclick="window.Engine.openGame('slots')">
+                    <i data-lucide="gem" class="game-icon" size="32"></i>
+                    <div style="font-weight:bold; color:#fff;">SLOTS</div>
+                    <div style="font-size:0.65rem; color:#666;">Jackpot: 50x</div>
+                </div>
+            </div>
+
+            <div id="game-stage" class="hidden" style="background:#111; border:1px solid #333; padding:15px; border-radius:8px; margin-top:15px;">
+                <!-- Dynamic Game Content -->
+            </div>
+            
+            <button class="btn" style="width:100%; margin-top:20px;" onclick="window.Engine.closeGame()">TERUG NAAR MENU</button>
+        </div>
     </main>
 
     <nav>
         <button class="nav-btn active" id="nav-city" onclick="window.UI.nav('city')" data-view="city"><i data-lucide="map" size="20"></i>KAART</button>
         <button class="nav-btn" id="nav-assets" onclick="window.UI.nav('assets')" data-view="assets"><i data-lucide="building-2" size="20"></i>BEZIT</button>
         <button class="nav-btn" id="nav-business" onclick="window.UI.nav('business')" data-view="business"><i data-lucide="package" size="20"></i>HANDEL</button>
-        <button class="nav-btn" id="nav-families" onclick="window.UI.nav('families')" data-view="families"><i data-lucide="users" size="20"></i>ONDERWERELD</button>
+        <button class="nav-btn" id="nav-families" onclick="window.UI.nav('families')" data-view="families"><i data-lucide="users" size="20"></i>BAZEN</button>
         <button class="nav-btn" id="nav-ops" onclick="window.UI.nav('ops')" data-view="ops"><i data-lucide="crosshair" size="20"></i>MISSIES</button>
-        <button class="nav-btn" id="nav-profile" onclick="window.UI.nav('profile')" data-view="profile"><i data-lucide="user" size="20"></i>BOSS</button>
+        <button class="nav-btn" id="nav-casino" onclick="window.UI.nav('casino')" data-view="casino"><i data-lucide="dices" size="20"></i>CASINO</button>
+        <button class="nav-btn" id="nav-profile" onclick="window.UI.nav('profile')" data-view="profile"><i data-lucide="user" size="20"></i>IK</button>
     </nav>
 </div>
 
@@ -718,6 +769,7 @@
         render() {
             if(!state) return;
             document.getElementById('ui-money').innerText = `€${state.money.toLocaleString()}`;
+            document.getElementById('ui-casino-money').innerText = state.money.toLocaleString();
             document.getElementById('ui-dirty-money').innerText = `€${state.dirtyMoney.toLocaleString()}`;
             document.getElementById('ui-rep').innerText = state.rep;
             document.getElementById('ui-heat').innerText = `${state.heat}%`;
@@ -1130,7 +1182,7 @@
         },
 
         checkSaveIntegrity() {
-            if (!state.version || state.version < 6.1) state.version = 6.1; 
+            if (!state.version || state.version < 6.2) state.version = 6.2; 
             if (!state.player) state.player = { level: 1, xp: 0, nextXp: 100, skillPoints: 0, stats: { muscle: 1, brains: 1, charm: 1 }, loadout: { weapon: null, armor: null, gadget: null } };
             if (!state.ownedGear) state.ownedGear = [];
             if (!state.ownedBusinesses) state.ownedBusinesses = [];
@@ -1144,10 +1196,8 @@
             if (!state.lab) state.lab = { chemicals: 0 };
             if (!state.leadersDefeated) state.leadersDefeated = [];
             
-            // Safe XP cap fix
             if (state.player.nextXp > 50000) state.player.nextXp = 5000;
             
-            // Ensure 3 contracts exist
             if (state.activeContracts.length === 0) this.generateContracts();
         },
 
@@ -1161,7 +1211,7 @@
 
         async save() {
             if (!state) return;
-            state.version = 6.1; 
+            state.version = 6.2; 
             try {
                 if (useLocalStorage) {
                     localStorage.setItem('noxhaven_save', JSON.stringify(state));
@@ -1214,7 +1264,7 @@
             if (diff === 'hard') { money = 1500; debt = 25000; heat = 15; }
 
             state = {
-                version: 6.1,
+                version: 6.2,
                 day: 1, money: money, dirtyMoney: 0, rep: 0, hp: 100, heat: heat, debt: debt,
                 loc: 'low', maxInv: 15, inventory: { drugs: 0, weapons: 0, tech: 0, luxury: 0, meds: 0 },
                 crew: [], ownedDistricts: [], hqUpgrades: [], ownedGear: [], ownedBusinesses: [], policeRel: 20, 
@@ -1236,6 +1286,308 @@
             UI.hideStartScreen();
             this.generatePrices(true);
             selectedDistrict = state.loc;
+            UI.render();
+            this.save();
+        },
+
+        // --- Casino Logic ---
+        openGame(game) {
+            const stage = document.getElementById('game-stage');
+            document.getElementById('casino-menu').classList.add('hidden');
+            stage.classList.remove('hidden');
+            stage.innerHTML = ''; // Clear
+
+            if(game === 'blackjack') this.startBlackjackUI(stage);
+            if(game === 'roulette') this.startRouletteUI(stage);
+            if(game === 'slots') this.startSlotsUI(stage);
+        },
+
+        closeGame() {
+            document.getElementById('game-stage').classList.add('hidden');
+            document.getElementById('casino-menu').classList.remove('hidden');
+        },
+
+        // --- Blackjack ---
+        blackjackDeck: [],
+        blackjackHand: [],
+        dealerHand: [],
+        blackjackBet: 0,
+        
+        startBlackjackUI(stage) {
+            stage.innerHTML = `
+                <div style="text-align:center; margin-bottom:15px;">
+                    <div style="font-size:1.2rem; font-weight:bold; color:var(--gold)">BLACKJACK</div>
+                    <div style="font-size:0.7rem; color:#666;">Dealer past op 17</div>
+                </div>
+                <div id="bj-table">
+                    <div style="margin-bottom:10px;">DEALER: <span id="bj-dealer-score">?</span></div>
+                    <div id="bj-dealer-cards" style="min-height:70px; margin-bottom:15px;"></div>
+                    <div style="margin-bottom:10px;">JOUW HAND: <span id="bj-player-score">0</span></div>
+                    <div id="bj-player-cards" style="min-height:70px;"></div>
+                </div>
+                <div id="bj-controls" style="margin-top:20px; display:grid; gap:10px;">
+                    <input type="number" id="bj-bet" value="100" style="width:100%; padding:10px; background:#222; border:1px solid #444; color:white; text-align:center;">
+                    <button class="btn btn-gold" onclick="window.Engine.dealBlackjack()">DEAL</button>
+                </div>
+                <div id="bj-actions" class="hidden" style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <button class="btn btn-action" onclick="window.Engine.bjHit()">HIT</button>
+                    <button class="btn" onclick="window.Engine.bjStand()">STAND</button>
+                </div>
+                <div id="bj-result" style="margin-top:15px; text-align:center; font-weight:bold; height:20px;"></div>
+            `;
+        },
+
+        createDeck() {
+            const suits = ['h','d','c','s'];
+            const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+            let deck = [];
+            for(let s of suits) { for(let r of ranks) { deck.push(r); } }
+            return deck.sort(() => Math.random() - 0.5);
+        },
+
+        dealBlackjack() {
+            const betInput = document.getElementById('bj-bet');
+            const bet = parseInt(betInput.value);
+            if(bet > state.money) return UI.toast("Niet genoeg geld!", true);
+            if(bet < 10) return UI.toast("Minimale inzet €10", true);
+
+            state.money -= bet;
+            this.blackjackBet = bet;
+            this.blackjackDeck = this.createDeck();
+            this.blackjackHand = [this.blackjackDeck.pop(), this.blackjackDeck.pop()];
+            this.dealerHand = [this.blackjackDeck.pop(), this.blackjackDeck.pop()];
+            
+            document.getElementById('bj-controls').classList.add('hidden');
+            document.getElementById('bj-actions').classList.remove('hidden');
+            document.getElementById('bj-result').innerText = '';
+            
+            this.updateBlackjackUI(false);
+            UI.render(); // update money display
+            
+            // Check instant blackjack
+            if(this.getScore(this.blackjackHand) === 21) {
+                this.bjStand();
+            }
+        },
+
+        bjHit() {
+            this.blackjackHand.push(this.blackjackDeck.pop());
+            this.updateBlackjackUI(false);
+            if(this.getScore(this.blackjackHand) > 21) {
+                this.endBlackjack(false, "BUST! Je hebt meer dan 21.");
+            }
+        },
+
+        bjStand() {
+            let dealerScore = this.getScore(this.dealerHand);
+            while(dealerScore < 17) {
+                this.dealerHand.push(this.blackjackDeck.pop());
+                dealerScore = this.getScore(this.dealerHand);
+            }
+            this.updateBlackjackUI(true);
+            
+            const playerScore = this.getScore(this.blackjackHand);
+            
+            if(dealerScore > 21) {
+                this.endBlackjack(true, "Dealer Busted! Jij wint!");
+            } else if (playerScore > dealerScore) {
+                this.endBlackjack(true, "Jij wint!");
+            } else if (playerScore === dealerScore) {
+                state.money += this.blackjackBet; // Push
+                this.endBlackjack(null, "Gelijkspel (Push).");
+            } else {
+                this.endBlackjack(false, "Dealer wint.");
+            }
+        },
+
+        endBlackjack(win, msg) {
+            document.getElementById('bj-actions').classList.add('hidden');
+            document.getElementById('bj-controls').classList.remove('hidden');
+            
+            const el = document.getElementById('bj-result');
+            el.innerText = msg;
+            
+            if(win === true) {
+                el.style.color = "var(--green)";
+                const isBj = this.getScore(this.blackjackHand) === 21 && this.blackjackHand.length === 2;
+                const winAmount = Math.floor(this.blackjackBet * (isBj ? 2.5 : 2));
+                state.money += winAmount;
+                if(winAmount > 5000) UI.toast("BIG WIN!", false);
+            } else if (win === false) {
+                el.style.color = "var(--blood)";
+            } else {
+                el.style.color = "white";
+            }
+            UI.render();
+            this.save();
+        },
+
+        getScore(hand) {
+            let score = 0;
+            let aces = 0;
+            for(let card of hand) {
+                if(card === 'A') { aces++; score += 11; }
+                else if (['K','Q','J'].includes(card)) { score += 10; }
+                else { score += parseInt(card); }
+            }
+            while(score > 21 && aces > 0) { score -= 10; aces--; }
+            return score;
+        },
+
+        updateBlackjackUI(showDealer) {
+            const renderCard = (c, hidden=false) => {
+                if(hidden) return `<div class="playing-card back"></div>`;
+                const isRed = ['♥','♦'].includes(c) || false; // Simplified, assuming suit not tracked for color logic in simplified array
+                // Making visual logic simple based on random chance for color since suit is stripped in logic above
+                // To do it right, logic needs update. For now, random red/black visual or just black text.
+                return `<div class="playing-card black">${c}</div>`;
+            };
+
+            document.getElementById('bj-player-cards').innerHTML = this.blackjackHand.map(c => renderCard(c)).join('');
+            document.getElementById('bj-player-score').innerText = this.getScore(this.blackjackHand);
+
+            if(showDealer) {
+                document.getElementById('bj-dealer-cards').innerHTML = this.dealerHand.map(c => renderCard(c)).join('');
+                document.getElementById('bj-dealer-score').innerText = this.getScore(this.dealerHand);
+            } else {
+                document.getElementById('bj-dealer-cards').innerHTML = renderCard(this.dealerHand[0]) + renderCard(null, true);
+                document.getElementById('bj-dealer-score').innerText = "?";
+            }
+        },
+
+        // --- Roulette ---
+        startRouletteUI(stage) {
+            stage.innerHTML = `
+                <div style="text-align:center; margin-bottom:15px;">
+                    <div style="font-size:1.2rem; font-weight:bold; color:var(--gold)">ROULETTE</div>
+                </div>
+                <div style="display:flex; justify-content:center; margin-bottom:20px;">
+                    <div id="roulette-wheel" style="width:80px; height:80px; border-radius:50%; border:4px solid #333; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold; background:#000;">
+                        ?
+                    </div>
+                </div>
+                <input type="number" id="r-bet" value="100" style="width:100%; padding:10px; background:#222; border:1px solid #444; color:white; text-align:center; margin-bottom:10px;">
+                <div style="display:flex; gap:5px;">
+                    <button class="roulette-btn r-red" onclick="window.Engine.spinRoulette('red')">ROOD (x2)</button>
+                    <button class="roulette-btn r-green" onclick="window.Engine.spinRoulette('green')">0 (x14)</button>
+                    <button class="roulette-btn r-black" onclick="window.Engine.spinRoulette('black')">ZWART (x2)</button>
+                </div>
+                <div id="r-result" style="margin-top:15px; text-align:center; font-weight:bold; height:20px;"></div>
+            `;
+        },
+
+        spinRoulette(choice) {
+            const betInput = document.getElementById('r-bet');
+            const bet = parseInt(betInput.value);
+            if(bet > state.money) return UI.toast("Niet genoeg geld!", true);
+            state.money -= bet;
+            UI.render();
+
+            const wheel = document.getElementById('roulette-wheel');
+            let counter = 0;
+            const interval = setInterval(() => {
+                const num = Math.floor(Math.random() * 37);
+                let color = 'black';
+                if(num === 0) color = 'green';
+                else if ([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36].includes(num)) color = 'red'; // Standard layout approximation
+                
+                wheel.style.backgroundColor = color === 'red' ? 'var(--blood)' : (color === 'green' ? 'var(--green)' : '#111');
+                wheel.innerText = num;
+                counter++;
+                if(counter > 20) {
+                    clearInterval(interval);
+                    this.resolveRoulette(num, color, choice, bet);
+                }
+            }, 50);
+        },
+
+        resolveRoulette(num, color, choice, bet) {
+            let won = false;
+            let multiplier = 0;
+
+            if (choice === 'red' && color === 'red') { won = true; multiplier = 2; }
+            else if (choice === 'black' && color === 'black') { won = true; multiplier = 2; }
+            else if (choice === 'green' && num === 0) { won = true; multiplier = 14; }
+
+            const resEl = document.getElementById('r-result');
+            if (won) {
+                const winAmt = bet * multiplier;
+                state.money += winAmt;
+                resEl.innerText = `GEWONNEN! +€${winAmt}`;
+                resEl.style.color = "var(--green)";
+            } else {
+                resEl.innerText = "VERLOREN";
+                resEl.style.color = "var(--blood)";
+            }
+            UI.render();
+            this.save();
+        },
+
+        // --- Slots ---
+        startSlotsUI(stage) {
+            stage.innerHTML = `
+                <div style="text-align:center; margin-bottom:15px;">
+                    <div style="font-size:1.2rem; font-weight:bold; color:var(--gold)">NEON SLOTS</div>
+                </div>
+                <div style="text-align:center; margin-bottom:20px;">
+                    <div class="slot-reel" id="s1">🍒</div>
+                    <div class="slot-reel" id="s2">🍒</div>
+                    <div class="slot-reel" id="s3">🍒</div>
+                </div>
+                <input type="number" id="s-bet" value="50" style="width:100%; padding:10px; background:#222; border:1px solid #444; color:white; text-align:center; margin-bottom:10px;">
+                <button class="btn btn-gold" style="width:100%" onclick="window.Engine.spinSlots()">DRAAIEN</button>
+                <div id="s-result" style="margin-top:15px; text-align:center; font-weight:bold; height:20px;"></div>
+            `;
+        },
+
+        spinSlots() {
+            const betInput = document.getElementById('s-bet');
+            const bet = parseInt(betInput.value);
+            if(bet > state.money) return UI.toast("Niet genoeg geld!", true);
+            state.money -= bet;
+            UI.render();
+
+            const symbols = ['🍒','🍒','🍒','🍋','🍋','🍇','💎','7️⃣']; // Weighted array
+            const reels = [document.getElementById('s1'), document.getElementById('s2'), document.getElementById('s3')];
+            let results = [];
+
+            let spins = 0;
+            const interval = setInterval(() => {
+                results = [];
+                reels.forEach(r => {
+                    const sym = symbols[Math.floor(Math.random() * symbols.length)];
+                    r.innerText = sym;
+                    results.push(sym);
+                });
+                spins++;
+                if(spins > 15) {
+                    clearInterval(interval);
+                    this.resolveSlots(results, bet);
+                }
+            }, 100);
+        },
+
+        resolveSlots(res, bet) {
+            const [a, b, c] = res;
+            let win = 0;
+            
+            if (a === b && b === c) {
+                if(a === '7️⃣') win = bet * 50;
+                else if (a === '💎') win = bet * 30;
+                else win = bet * 10;
+            } else if (a === b || b === c || a === c) {
+                win = Math.floor(bet * 1.5); // Small win pair
+            }
+
+            const el = document.getElementById('s-result');
+            if (win > 0) {
+                state.money += win;
+                el.innerText = `WINNAAR! +€${win}`;
+                el.style.color = "var(--green)";
+            } else {
+                el.innerText = "Helaas...";
+                el.style.color = "#666";
+            }
             UI.render();
             this.save();
         },
