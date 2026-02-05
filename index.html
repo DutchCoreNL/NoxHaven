@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noxhaven: Blood & Empire - Combat Update</title>
+    <title>Noxhaven: Blood & Empire - Market Update</title>
     <!-- Externe Icon Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -294,7 +294,7 @@
         <div style="margin-bottom: 40px;">
             <div style="font-family: var(--font-main); color: var(--blood); font-size: 3.5rem; font-weight: bold; letter-spacing: 8px; margin-bottom: 5px; text-shadow: 0 0 30px rgba(185, 28, 28, 0.6);">NOXHAVEN</div>
             <div style="color: var(--gold); letter-spacing: 4px; font-size: 0.8rem; font-weight: 600; opacity: 0.8;">KINGPIN UPDATE</div>
-            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.3 (COMBAT REWORK)</div>
+            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.4 (MARKET FIXED)</div>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
             <button class="btn btn-action" onclick="window.UI.showDifficulty()">NIEUWE OPERATIE</button>
@@ -1029,6 +1029,18 @@
                      const charmBonus = (totalCharm * 0.02) + (state.rep / 5000);
                      displayPrice = Math.floor(basePrice * 0.85 * (1 + charmBonus));
                      priceLabel = "Verkoop";
+                     
+                     // Profit Calculation
+                     const avgCost = state.inventoryCosts[g.id] || 0;
+                     const profit = displayPrice - avgCost;
+                     const profitClass = profit >= 0 ? 'var(--green)' : 'var(--blood)';
+                     const profitSign = profit >= 0 ? '+' : '';
+                     const profitStr = `<span style="color:${profitClass}; font-weight:bold; margin-left:5px;">(${profitSign}€${Math.floor(profit)})</span>`;
+                     
+                     if ((state.inventory[g.id] || 0) > 0) {
+                        priceLabel += ` ${profitStr}`; 
+                     }
+
                      if ((state.inventory[g.id] || 0) <= 0) btnDisabled = true;
                 } else {
                      if (isRemote) btnDisabled = true;
@@ -1215,7 +1227,7 @@
         },
 
         checkSaveIntegrity() {
-            if (!state.version || state.version < 6.3) state.version = 6.3; 
+            if (!state.version || state.version < 6.4) state.version = 6.4; 
             if (!state.player) state.player = { level: 1, xp: 0, nextXp: 100, skillPoints: 0, stats: { muscle: 1, brains: 1, charm: 1 }, loadout: { weapon: null, armor: null, gadget: null } };
             if (!state.ownedGear) state.ownedGear = [];
             if (!state.ownedBusinesses) state.ownedBusinesses = [];
@@ -1228,6 +1240,16 @@
             if (!state.activeContracts) state.activeContracts = [];
             if (!state.lab) state.lab = { chemicals: 0 };
             if (!state.leadersDefeated) state.leadersDefeated = [];
+            
+            // NEW: Initialize Average Costs
+            if (!state.inventoryCosts) state.inventoryCosts = {};
+            // Backfill costs for existing items to prevent crazy profit numbers
+            Object.keys(state.inventory).forEach(key => {
+                if (state.inventory[key] > 0 && !state.inventoryCosts[key]) {
+                    const good = GOODS.find(g => g.id === key);
+                    state.inventoryCosts[key] = good ? good.base : 0;
+                }
+            });
             
             if (state.player.nextXp > 50000) state.player.nextXp = 5000;
             
@@ -1244,7 +1266,7 @@
 
         async save() {
             if (!state) return;
-            state.version = 6.3; 
+            state.version = 6.4; 
             try {
                 if (useLocalStorage) {
                     localStorage.setItem('noxhaven_save', JSON.stringify(state));
@@ -1302,9 +1324,10 @@
             if (diff === 'hard') { money = 1500; debt = 25000; heat = 15; }
 
             state = {
-                version: 6.3,
+                version: 6.4,
                 day: 1, money: money, dirtyMoney: 0, rep: 0, hp: 100, heat: heat, debt: debt,
                 loc: 'low', maxInv: 15, inventory: { drugs: 0, weapons: 0, tech: 0, luxury: 0, meds: 0 },
+                inventoryCosts: {}, // Track avg costs
                 crew: [], ownedDistricts: [], hqUpgrades: [], ownedGear: [], ownedBusinesses: [], policeRel: 20, 
                 familyRel: { cartel: 0, syndicate: 0, bikers: 0 },
                 activeContracts: [],
@@ -1689,6 +1712,15 @@
                     const batchSize = Math.min(state.lab.chemicals, 20, space); 
                     state.lab.chemicals -= batchSize;
                     state.inventory['drugs'] = (state.inventory['drugs'] || 0) + batchSize;
+                    
+                    // Update costs for produced drugs - Assume cheap cost for lab made drugs (e.g. 50% of base)
+                    const gid = 'drugs';
+                    const baseCost = GOODS.find(g => g.id === gid).base * 0.5;
+                    const currentCount = state.inventory[gid] || 0;
+                    const currentCost = state.inventoryCosts[gid] || 0;
+                    const newAvg = ((currentCount * currentCost) + (batchSize * baseCost)) / (currentCount + batchSize);
+                    state.inventoryCosts[gid] = newAvg;
+                    
                     labYield = batchSize;
                     state.heat += 4; 
                 }
@@ -1767,7 +1799,15 @@
                 this.startCombat(0, { name: "Gangster", risk: 50, hp: 60 }); 
                 return;
             } else if (action === 'deal') {
-                state.inventory['drugs'] = (state.inventory['drugs'] || 0) + 1;
+                // Update cost for shadow deal
+                const gid = 'drugs';
+                const buyPrice = 300; // Deal cost
+                const currentCount = state.inventory[gid] || 0;
+                const currentCost = state.inventoryCosts[gid] || 0;
+                const newAvg = ((currentCount * currentCost) + buyPrice) / (currentCount + 1);
+                state.inventoryCosts[gid] = newAvg;
+                
+                state.inventory[gid] = (state.inventory[gid] || 0) + 1;
                 UI.toast("Deal gesloten.", false);
             } else if (action === 'loot') {
                 state.money += 1000;
@@ -2019,12 +2059,25 @@
                 const invCount = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
                 if (state.money < buyPrice) return UI.toast("Te weinig kapitaal.", true);
                 if (invCount >= state.maxInv) return UI.toast("Kofferbak vol.", true);
+                
                 state.money -= buyPrice;
+                
+                // --- UPDATE AVERAGE COST ---
+                const currentCount = state.inventory[gid] || 0;
+                const currentCost = state.inventoryCosts[gid] || 0;
+                // Weighted average calculation
+                const newAvg = ((currentCount * currentCost) + buyPrice) / (currentCount + 1);
+                state.inventoryCosts[gid] = newAvg;
+                
                 state.inventory[gid] = (state.inventory[gid] || 0) + 1;
             } else {
                 if (!state.inventory[gid] || state.inventory[gid] <= 0) return UI.toast("Niet op voorraad.", true);
                 state.money += sellPrice;
                 state.inventory[gid]--;
+                
+                // If inventory hits 0, reset cost to 0 for cleanliness, though not strictly required
+                if (state.inventory[gid] <= 0) state.inventoryCosts[gid] = 0;
+                
                 state.rep += 2;
                 this.gainXp(2); 
             }
