@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noxhaven: Blood & Empire - Kingpin Fixed</title>
+    <title>Noxhaven: Blood & Empire - Kingpin Polished</title>
     <!-- Externe Icon Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -87,6 +87,22 @@
         .news-scroll-wrap { flex: 1; overflow: hidden; position: relative; margin-left: 10px; display: flex; align-items: center; }
         .news-content { font-size: 0.75rem; color: #aaa; white-space: nowrap; animation: scroll-news 25s linear infinite; display: inline-block; }
         @keyframes scroll-news { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
+
+        /* Animation for Combat Shake */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1px); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-anim { animation: shake 0.5s; }
 
         .card { 
             background: var(--card); border: 1px solid var(--border); border-radius: 8px; 
@@ -237,11 +253,12 @@
         <div style="margin-bottom: 40px;">
             <div style="font-family: var(--font-main); color: var(--blood); font-size: 3.5rem; font-weight: bold; letter-spacing: 8px; margin-bottom: 5px; text-shadow: 0 0 30px rgba(185, 28, 28, 0.6);">NOXHAVEN</div>
             <div style="color: var(--gold); letter-spacing: 4px; font-size: 0.8rem; font-weight: 600; opacity: 0.8;">KINGPIN UPDATE</div>
-            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.0 (FIXED)</div>
+            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.1 (POLISHED)</div>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
             <button class="btn btn-action" onclick="window.UI.showDifficulty()">NIEUWE OPERATIE</button>
             <button class="btn" onclick="window.UI.showTutorial()">HOE TE SPELEN</button>
+            <button class="btn btn-gold" style="font-size:0.7rem;" onclick="window.Engine.exportSave()">EXPORT SAVE (BACKUP)</button>
             <button class="btn" style="opacity:0.5; font-size:0.65rem;" onclick="window.Engine.reset()">RESET OPSLAG</button>
         </div>
     </div>
@@ -486,7 +503,7 @@
             <div id="ui-market-alert" style="color:var(--gold); font-size:0.7rem; margin-bottom:10px; font-weight:bold; display:none; background:rgba(198,163,6,0.1); padding:8px; border-radius:4px;">⚠️ Je bent hier niet. Reis hierheen om te handelen.</div>
             
             <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">
-                <span>BAGAGE: <span id="ui-inv-count">0</span> / <span id="ui-inv-max">15</span></span>
+                <span>BAGAGE: <span id="ui-inv-count">0</span> / <span id="ui-inv-max">15</span> <span id="ui-inv-full" style="color:var(--blood); display:none; font-weight:bold;">(VOL)</span></span>
                 <span>MARGE: <span id="ui-trade-bonus">0%</span></span>
             </div>
             <div style="display:flex; gap:8px; margin-bottom:15px;">
@@ -539,7 +556,7 @@
 </div>
 
 <div id="overlay" class="overlay">
-    <div class="modal">
+    <div class="modal" id="modal-box">
         <div id="m-title" class="modal-title">TITEL</div>
         <div id="m-content" class="modal-text">Inhoud...</div>
         <div id="m-actions" style="display:flex; flex-direction:column; gap:10px; margin-top:20px;"></div>
@@ -887,8 +904,17 @@
             if (isRemote) alertBox.style.display = 'block';
             else alertBox.style.display = 'none';
 
-            document.getElementById('ui-inv-count').innerText = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
+            const invCount = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
+            document.getElementById('ui-inv-count').innerText = invCount;
             document.getElementById('ui-inv-max').innerText = state.maxInv;
+            
+            // Visual indicator for full inventory
+            const fullIndicator = document.getElementById('ui-inv-full');
+            if (invCount >= state.maxInv) {
+                fullIndicator.style.display = 'inline';
+            } else {
+                fullIndicator.style.display = 'none';
+            }
             
             const totalCharm = Engine.getPlayerStat('charm');
             const charmBonus = Math.floor(((totalCharm * 0.02) + (state.rep / 5000)) * 100);
@@ -1072,7 +1098,14 @@
             let loadedState = null;
             if (useLocalStorage) {
                 const localData = localStorage.getItem('noxhaven_save');
-                if (localData) loadedState = JSON.parse(localData);
+                if (localData) {
+                    try {
+                        loadedState = JSON.parse(localData);
+                    } catch (e) {
+                        console.error("Corrupt save data", e);
+                        UI.toast("Save corrupt. Reset aanbevolen.", true);
+                    }
+                }
             } else if (user && db) {
                 try {
                     const snap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'));
@@ -1097,7 +1130,7 @@
         },
 
         checkSaveIntegrity() {
-            if (!state.version || state.version < 6.0) state.version = 6.0; 
+            if (!state.version || state.version < 6.1) state.version = 6.1; 
             if (!state.player) state.player = { level: 1, xp: 0, nextXp: 100, skillPoints: 0, stats: { muscle: 1, brains: 1, charm: 1 }, loadout: { weapon: null, armor: null, gadget: null } };
             if (!state.ownedGear) state.ownedGear = [];
             if (!state.ownedBusinesses) state.ownedBusinesses = [];
@@ -1128,7 +1161,7 @@
 
         async save() {
             if (!state) return;
-            state.version = 6.0; 
+            state.version = 6.1; 
             try {
                 if (useLocalStorage) {
                     localStorage.setItem('noxhaven_save', JSON.stringify(state));
@@ -1139,6 +1172,29 @@
                 console.error("Save failed", e);
                 localStorage.setItem('noxhaven_save', JSON.stringify(state)); // Always backup locally
             }
+        },
+        
+        exportSave() {
+            if(!state) return UI.toast("Geen save data.");
+            const dataStr = JSON.stringify(state);
+            const input = document.createElement('input');
+            input.value = dataStr;
+            document.body.appendChild(input);
+            input.select();
+            
+            // Try modern api then fallback
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(dataStr).then(() => {
+                    UI.toast("Save gekopieerd naar klembord!");
+                }).catch(() => {
+                    document.execCommand('copy');
+                    UI.toast("Save gekopieerd (Fallback).");
+                });
+            } else {
+                document.execCommand('copy');
+                UI.toast("Save gekopieerd (Legacy).");
+            }
+            document.body.removeChild(input);
         },
 
         async reset() {
@@ -1158,7 +1214,7 @@
             if (diff === 'hard') { money = 1500; debt = 25000; heat = 15; }
 
             state = {
-                version: 6.0,
+                version: 6.1,
                 day: 1, money: money, dirtyMoney: 0, rep: 0, hp: 100, heat: heat, debt: debt,
                 loc: 'low', maxInv: 15, inventory: { drugs: 0, weapons: 0, tech: 0, luxury: 0, meds: 0 },
                 crew: [], ownedDistricts: [], hqUpgrades: [], ownedGear: [], ownedBusinesses: [], policeRel: 20, 
@@ -1737,6 +1793,15 @@
 
             logs.push(`<span style="color:#adffad">[HIT] Jij doet -${dmg} schade.</span>`);
             logs.push(`<span style="color:#ffadad">[HIT] ${targetName} doet -${selfDmg} schade aan jou.</span>`);
+
+            // Apply shake animation if damage taken
+            if (selfDmg > 0) {
+                const modal = document.getElementById('modal-box');
+                if (modal) {
+                    modal.classList.add('shake-anim');
+                    setTimeout(() => modal.classList.remove('shake-anim'), 500);
+                }
+            }
 
             if (targetHP <= 0) {
                 logs.push(`[WIN] ${targetName} is uitgeschakeld!`);
