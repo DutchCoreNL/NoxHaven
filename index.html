@@ -27,11 +27,13 @@
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; outline: none; }
         
+        /* Fix voor veilige zones op moderne telefoons */
         body { 
             margin: 0; padding: 0; background-color: var(--bg); color: var(--text-main); 
             font-family: var(--font-ui); height: 100dvh; display: flex; flex-direction: column; 
             overflow: hidden; 
             overscroll-behavior: none; 
+            padding-bottom: env(safe-area-inset-bottom); /* Fix */
         }
         
         #app { 
@@ -153,6 +155,14 @@
         .card-title { font-weight: 700; font-size: 0.95rem; color: #f1f5f9; }
         .card-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; line-height: 1.3; }
         
+        /* Specifieke styling voor Solo Ops */
+        .solo-op-card {
+            border: 1px solid #444;
+            border-left: 3px solid var(--gold);
+            background: linear-gradient(90deg, #111 0%, #0a0a0a 100%);
+        }
+        .solo-op-card.locked { opacity: 0.4; pointer-events: none; border-left-color: #444; }
+
         .section-header { display: flex; justify-content: space-between; align-items: center; margin: 24px 0 12px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
         .section-title { color: var(--gold); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
 
@@ -238,7 +248,7 @@
         nav { 
             position: absolute; bottom: 0; left: 0; right: 0; 
             min-height: 65px; height: auto; 
-            padding-bottom: env(safe-area-inset-bottom);
+            padding-bottom: max(5px, env(safe-area-inset-bottom)); /* Fix voor scrollen */
             background: rgba(10, 10, 10, 0.98); border-top: 1px solid var(--border); 
             display: flex; justify-content: space-around; align-items: center; z-index: 1000; 
             overflow-x: auto; /* Allow scrolling if too wide */
@@ -252,7 +262,12 @@
         .nav-btn i { stroke-width: 2px; }
 
         .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
-        .modal { background: #0a0a0a; width: 100%; max-width: 450px; padding: 20px; border: 1px solid var(--border); border-radius: 12px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .modal { 
+            background: #0a0a0a; width: 100%; max-width: 450px; padding: 20px; 
+            border: 1px solid var(--border); border-radius: 12px; 
+            max-height: 80vh; overflow-y: auto; -webkit-overflow-scrolling: touch; /* Fix voor modals */
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
+        }
         .modal-title { color: var(--blood); font-size: 1.2rem; margin-bottom: 10px; font-family: var(--font-main); text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 10px; }
         
         .combat-log { 
@@ -279,6 +294,17 @@
 
         .contract-badge { background: #333; color: #fff; padding: 2px 6px; border-radius: 3px; font-size: 0.6rem; text-transform: uppercase; font-weight: bold; }
         .faction-tag { padding: 2px 5px; border-radius: 3px; font-weight: bold; font-size: 0.6rem; color: #fff; text-shadow: 0 1px 2px #000; }
+
+        /* Floating Text Animation */
+        .float-text { position: absolute; font-weight: bold; pointer-events: none; animation: floatUp 1s ease-out forwards; z-index: 9999; text-shadow: 1px 1px 0 #000; font-size: 1.2rem; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-30px) scale(1.2); opacity: 0; } }
+
+        /* Weather Overlays */
+        #weather-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 10; opacity: 0.3; mix-blend-mode: overlay; transition: all 1s; }
+        .weather-rain { background-image: repeating-linear-gradient(170deg, transparent, transparent 5%, rgba(150,150,255,0.2) 6%); animation: rain 0.5s linear infinite; }
+        .weather-smog { background: radial-gradient(circle, transparent 40%, rgba(100,100,100,0.6) 100%); }
+        .weather-neon { background: linear-gradient(45deg, rgba(255,0,0,0.1), rgba(0,0,255,0.1)); filter: contrast(1.2); }
+        @keyframes rain { from { background-position: 0 0; } to { background-position: 10px 100px; } }
 
         #start-screen {
             position: fixed; inset: 0; background: radial-gradient(circle at center, #1a0000 0%, #000 100%);
@@ -323,6 +349,7 @@
 </div>
 
 <div id="app" class="hidden">
+    <div id="weather-overlay"></div>
     <header>
         <div class="header-top">
             <div>
@@ -571,6 +598,10 @@
         </div>
 
         <div id="view-ops" class="view-section hidden">
+            <div class="section-header"><span class="section-title">Solo Operaties</span></div>
+            <div style="font-size:0.7rem; color:#888; margin-bottom:10px;">Voer zelf acties uit. Hoog risico, maar geen crew nodig.</div>
+            <div id="solo-crimes-list"></div>
+
             <div class="section-header"><span class="section-title">Mijn Crew</span></div>
             <div style="margin-bottom:10px; background:#111; padding:8px; border-radius:4px; font-size:0.7rem; color:#888;">
                 <strong style="color:var(--gold)">ROLLEN:</strong><br>
@@ -669,6 +700,14 @@
         'bikers': { id: 'bikers', name: 'Iron Skulls', contact: 'Hammer', desc: 'Wapenhandelaren in Iron Borough.', color: '#d97706', home: 'iron' }
     };
 
+    const SOLO_OPERATIONS = [
+        { id: 'pickpocket', name: "Zakkenrollen", level: 1, stat: 'charm', risk: 15, heat: 5, reward: 300, desc: "Zakkenrollen bij de metro." },
+        { id: 'atm_skimming', name: "ATM Skimming", level: 3, stat: 'brains', risk: 25, heat: 10, reward: 1200, desc: "Plaats skimmers in Crown Heights." },
+        { id: 'car_theft', name: "Auto Diefstal", level: 5, stat: 'brains', risk: 40, heat: 20, reward: 2500, desc: "Steel een luxe wagen voor export." },
+        { id: 'store_robbery', name: "Juwelier Overval", level: 7, stat: 'muscle', risk: 55, heat: 35, reward: 5000, desc: "Gewapende overval op klaarlichte dag." },
+        { id: 'crypto_heist', name: "Crypto Heist", level: 10, stat: 'brains', risk: 70, heat: 15, reward: 12000, desc: "Hack een cold storage wallet." }
+    ];
+
     const CONTRACT_TEMPLATES = [
         { name: "Koeriersdienst", risk: 20, heat: 10, rewardBase: 1500, type: 'delivery' },
         { name: "Rivalen Intimideren", risk: 45, heat: 25, rewardBase: 3500, type: 'combat' },
@@ -703,18 +742,48 @@
     ];
 
     const NEWS_HEADLINES = [
-        "Politie verhoogt patrouilles na reeks inbraken.",
-        "Grondstoftekort in Crown Heights jaagt prijzen omhoog.",
-        "Elena Virelli claimt overwinning in cyberoorlog.",
-        "Bounty Hunters gesignaleerd in de havensector.",
-        "Bendeoorlog in de Neon Strip drijft vraag naar meds op."
+        "NOXHAVEN DAILY: Politie staakt in Iron Borough na zoveelste drone-aanval.",
+        "MARKT UPDATE: Prijzen van Synthetica stijgen door explosie in lab sector 4.",
+        "GERUCHT: Een nieuwe lading militaire chips is gesmokkeld via Port Nero.",
+        "OPSPORING VERZOCHT: De 'Ghost' hacker heeft weer een bank platgelegd.",
+        "WEERBERICHT: Zure regen verwacht in Lowrise. Draag filters.",
+        "SCANDAAL: Burgemeester gezien met kopstukken van het Syndicate.",
+        "TECH TRENDS: Waarom iedereen opeens ouderwetse 'Glocks' wil hebben.",
+        "CRISIS: Ziekenhuizen in Crown Heights zitten vol na bendeoorlog.",
+        "ADVIES: Koop vastgoed in de Neon Strip nu de prijzen nog laag zijn.",
+        "WAARSCHUWING: Cyber-psychose gevallen nemen toe in de sloppenwijken.",
+        "VLOOT: Rojo Cartel claimt controle over dok 7 t/m 12.",
+        "ECONOMIE: Inflatie stijgt met 40% door instabiele cryptomunt.",
+        "LEVENSTIJL: Nieuwe synthetische drug 'Blue Velvet' verovert de clubs.",
+        "BEVEILIGING: Iron Skulls bieden 'bescherming' aan tegen woekerprijzen."
     ];
 
     const SHADOW_EVENTS = [
-        { title: "POLITIE CONTROLE", text: "Een corrupte agent houdt je aan.", options: [
-            { text: "KOOP OM (€500)", cost: 500, action: 'bribe' },
-            { text: "VLUCHT (50% KANS)", action: 'run' }
+        // --- POLITIE & HEAT ---
+        { title: "POLITIE BLOKKADE", text: "Ze doorzoeken alle auto's op drugs.", options: [
+            { text: "OMKOPEN (€500)", cost: 500, action: 'bribe' },
+            { text: "DOORBREKEN (Muscle Check)", action: 'force_run' }
         ]},
+        { title: "DRONE SCAN", text: "Een politiedrone scant je ID vanuit de lucht.", options: [
+            { text: "HACK DRONE (Brains Check)", action: 'hack_drone' },
+            { text: "DUIVEL IN STEEGJE", action: 'hide' }
+        ]},
+
+        // --- STRAATLEVEN & ECONOMIE ---
+        { title: "DE GOKKER", text: "Een wanhopige man wil zijn horloge verkopen.", options: [
+            { text: "KOOP (€200)", cost: 200, action: 'buy_item_loot' },
+            { text: "BEROOF HEM (Rep -5)", action: 'rob_civilian' }
+        ]},
+        { title: "GESTRANDE KOERIER", text: "Een Syndicate koerier ligt bloedend in een steeg.", options: [
+            { text: "HELP HEM (Rep +10)", action: 'help_faction' },
+            { text: "ST steel BAGAGE (+Item)", action: 'loot_box' }
+        ]},
+        { title: "ILLEGALE KLINIEK", text: "Een 'Back-alley' dokter biedt diensten aan.", options: [
+            { text: "HEEL WONDEN (€250)", cost: 250, action: 'heal_cheap' },
+            { text: "KOOP STIMULANTS (Combat Buff)", cost: 100, action: 'buff_combat' }
+        ]},
+
+        // --- OUDE EVENTS (BEHOUDEN) ---
         { title: "GANG AMBUSH", text: "Rivalen blokkeren de weg.", options: [
             { text: "VECHT", action: 'fight' },
             { text: "BETAAL TOL (€2000)", cost: 2000, action: 'pay' }
@@ -722,11 +791,110 @@
         { title: "STRAAT DEAL", text: "Een junkie biedt goedkope data aan.", options: [
             { text: "KOOP (€300)", cost: 300, action: 'deal' },
             { text: "NEGEER", action: 'ignore' }
-        ]},
-        { title: "GEVONDEN BUIT", text: "Je vindt een achtergelaten koffer.", options: [
-            { text: "NEEM MEE (+€1000)", action: 'loot' }
         ]}
     ];
+
+    const STORY_EVENTS = [
+        { 
+            id: 'intro_welcome', 
+            trigger: (s) => s.day === 2, 
+            sender: 'Unknown', 
+            subject: 'Welkom in de hel',
+            body: 'Ik zie dat je probeert te overleven. Een tip: vertrouw niemand, vooral de bankiers niet. - G.' 
+        },
+        { 
+            id: 'rich_warning', 
+            trigger: (s) => s.money >= 25000, 
+            sender: 'Rojo Cartel', 
+            subject: 'Opvallen',
+            body: 'Je maakt te veel lawaai en te veel geld, amigo. De haven is van ons. Blijf uit onze buurt, of je eindigt als visvoer.' 
+        },
+        { 
+            id: 'level_up_boss', 
+            trigger: (s) => s.player.level >= 5, 
+            sender: 'The Syndicate', 
+            subject: 'Samenwerking?',
+            body: 'Je talenten worden opgemerkt in Crown Heights. Misschien ben je geen straatrat meer. Laten we praten als je klaar bent voor het echte werk.' 
+        },
+        { 
+            id: 'debt_crisis', 
+            trigger: (s) => s.debt > 30000, 
+            sender: 'De Woekeraar', 
+            subject: 'TIJD IS GELD',
+            body: 'Mijn geduld raakt op. Elke dag dat je niet betaalt, kom ik dichterbij. Ik stuur binnenkort mijn "collectors".' 
+        }
+    ];
+
+    const DISTRICT_FLAVOR = {
+        'port': {
+            neutral: "De geur van zout en diesel. Kranen bewegen traag in de mist.",
+            owned: "Jouw handlangers controleren elke container die binnenkomt.",
+            high_heat: "Douanebeambten patrouilleren met honden. Het is hier heet.",
+            war: "Rookpluimen stijgen op uit de opslagloodsen. Het Cartel vecht terug."
+        },
+        'crown': {
+            neutral: "Hologrammen verlichten de wolkenkrabbers. Geld rolt hier over straat.",
+            owned: "De elite betaalt nu beschermingsgeld aan jou.",
+            high_heat: "Politiedrones zwermen tussen de torens. Pas op.",
+            war: "Glasregens vallen naar beneden na een explosie in een penthouse."
+        },
+        'iron': {
+            neutral: "Het ritmische gedreun van fabrieken overstemt alles.",
+            owned: "De fabrieken draaien overuren voor jouw imperium.",
+            high_heat: "SWAT-teams doorzoeken de oude gieterijen.",
+            war: "Bendeoorlogen worden hier uitgevochten met zware hamers en kettingen."
+        },
+        'low': {
+            neutral: "Drukke markten en overvolle flats. Hier kan je makkelijk verdwijnen.",
+            owned: "De straatkinderen werken nu als jouw ogen en oren.",
+            high_heat: "Razzia's in de woonblokken. Iedereen is nerveus.",
+            war: "De straten zijn leeg, behalve de lijken."
+        },
+        'neon': {
+            neutral: "De lichten gaan hier nooit uit. Toeristen en junks overal.",
+            owned: "Jij bepaalt wie er danst en wie er betaalt in de clubs.",
+            high_heat: "Undercover agenten mengen zich tussen het feestpubliek.",
+            war: "Chaos in de clubs. De muziek stopt, het schieten begint."
+        }
+    };
+
+    const COMBAT_ENVIRONMENT = {
+        'port': { 
+            name: "Container Doolhof", 
+            actionName: "CONTAINER HINDERLAAG", 
+            desc: "Hoog risico, hoge schade.",
+            type: 'ambush', 
+            log: "Je lokt de vijand tussen twee roestige zeecontainers..."
+        },
+        'crown': { 
+            name: "High-Tech Penthouse", 
+            actionName: "HACK BEVEILIGING", 
+            desc: "Gebruik omgeving om te stunnen.",
+            type: 'tech', 
+            log: "Je tapt in op het gebouwbeheer systeem..."
+        },
+        'iron': { 
+            name: "Luidruchtige Fabriek", 
+            actionName: "INDUSTRIEEL GEVAAR", 
+            desc: "Brute schade via machines.",
+            type: 'brutal', 
+            log: "Je trapt tegen een stoomventiel vlak naast de vijand..."
+        },
+        'low': { 
+            name: "Donkere Steeg", 
+            actionName: "VUILE TRUC", 
+            desc: "Zand in de ogen.",
+            type: 'dirty', 
+            log: "Je grijpt een handvol straatvuil en gooit het..."
+        },
+        'neon': { 
+            name: "Drukke Club", 
+            actionName: "PUBLIEK SCHILD", 
+            desc: "Gebruik menigte als dekking.",
+            type: 'cover', 
+            log: "Je duwt een onschuldige feestganger in de baan van het schot..."
+        }
+    };
 
     // --- Game Logic ---
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'noxhaven-saga-v5';
@@ -825,11 +993,41 @@
             this.renderFamilies();
             this.renderCrew();
             this.renderContracts();
+            this.renderSoloOperations(); // New
             this.renderProfile();
             this.renderAssets();
             document.getElementById('ui-news').innerText = state.currentNews;
             
+            this.setWeather(state.weather);
             this.ensureIcons();
+        },
+
+        setWeather(type) {
+            const el = document.getElementById('weather-overlay');
+            if(!el) return;
+            el.className = ''; // Reset
+            if(type === 'rain') el.classList.add('weather-rain');
+            if(type === 'smog') el.classList.add('weather-smog');
+            if(type === 'neon') el.classList.add('weather-neon');
+        },
+
+        showFloat(elementId, text, color) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const rect = el.getBoundingClientRect();
+            
+            const floatEl = document.createElement('div');
+            floatEl.className = 'float-text';
+            floatEl.innerText = text;
+            floatEl.style.color = color;
+            floatEl.style.left = (rect.left + rect.width / 2) + 'px';
+            floatEl.style.top = (rect.top) + 'px';
+            
+            document.body.appendChild(floatEl);
+            
+            setTimeout(() => {
+                floatEl.remove();
+            }, 1000);
         },
 
         renderAssets() {
@@ -951,7 +1149,20 @@
             if(d) markerGroup.setAttribute('transform', `translate(${d.cx}, ${d.cy})`);
 
             const sel = DISTRICTS[selectedDistrict];
-            document.getElementById('dist-name').innerText = sel ? sel.name : "Selecteer District";
+            
+            // --- DYNAMIC FLAVOR LOGIC ---
+            if (sel) {
+                const flavor = DISTRICT_FLAVOR[selectedDistrict];
+                let flavorText = flavor.neutral;
+                
+                if (state.heat > 80) flavorText = flavor.high_heat;
+                else if (state.ownedDistricts.includes(selectedDistrict)) flavorText = flavor.owned;
+                
+                document.getElementById('dist-name').innerHTML = `${sel.name}<div style="font-size:0.65rem; color:#888; font-style:italic; margin-top:4px; font-weight:normal;">"${flavorText}"</div>`;
+            } else {
+                document.getElementById('dist-name').innerText = "Selecteer District";
+            }
+            // ----------------------------
             
             const demandGood = state.districtDemands[selectedDistrict];
             const demandName = demandGood ? GOODS.find(g => g.id === demandGood).name : "Geen";
@@ -1109,6 +1320,43 @@
             }).join('');
         },
 
+        // Nieuwe Render Functie voor Solo Ops
+        renderSoloOperations() {
+            document.getElementById('solo-crimes-list').innerHTML = SOLO_OPERATIONS.map(op => {
+                const isLocked = state.player.level < op.level;
+                const playerStat = Engine.getPlayerStat(op.stat);
+                // Kans: 100 - risk + (stat * 5) - (heat / 4)
+                let chance = 100 - op.risk + (playerStat * 5) - (state.heat / 4);
+                chance = Math.max(5, Math.min(95, chance)); // Cap tussen 5% en 95%
+                
+                let chanceColor = 'var(--green)';
+                if (chance < 60) chanceColor = 'var(--gold)';
+                if (chance < 40) chanceColor = 'var(--blood)';
+
+                return `
+                <div class="card solo-op-card ${isLocked ? 'locked' : ''}">
+                    <div class="card-row">
+                        <div>
+                            <div class="card-title">${op.name} <span style="font-size:0.6rem; color:#666;">(Lvl ${op.level})</span></div>
+                            <div class="card-sub">${op.desc}</div>
+                            <div style="margin-top:4px; font-size:0.65rem;">
+                                <span style="color:var(--text-muted)">Stat: ${op.stat.toUpperCase()}</span> | 
+                                <span style="color:${chanceColor}">Kans: ${Math.floor(chance)}%</span>
+                            </div>
+                        </div>
+                        <div style="text-align:right; min-width:80px;">
+                            <div style="color:var(--gold); font-weight:bold; font-size:0.8rem;">€${op.reward}</div>
+                            <button class="btn btn-sm btn-action" style="margin-top:5px; width:100%;" 
+                                onclick="window.Engine.performSoloOperation('${op.id}')" 
+                                ${isLocked ? 'disabled' : ''}>
+                                ${isLocked ? 'SLOT' : 'START'}
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        },
+
         renderContracts() {
             if (state.activeContracts.length === 0) {
                  document.getElementById('crimes-list').innerHTML = `<div style="text-align:center; padding:20px; color:#666;">Geen contracten beschikbaar. Wacht tot morgen.</div>`;
@@ -1230,7 +1478,9 @@
         },
 
         checkSaveIntegrity() {
-            if (!state.version || state.version < 6.4) state.version = 6.4; 
+            if (!state.version || state.version < 6.5) state.version = 6.5; 
+            
+            // Basis initialisaties
             if (!state.player) state.player = { level: 1, xp: 0, nextXp: 100, skillPoints: 0, stats: { muscle: 1, brains: 1, charm: 1 }, loadout: { weapon: null, armor: null, gadget: null } };
             if (!state.ownedGear) state.ownedGear = [];
             if (!state.ownedBusinesses) state.ownedBusinesses = [];
@@ -1239,23 +1489,31 @@
             if (!state.priceTrends) state.priceTrends = {};
             if (state.activeCombat === undefined) state.activeCombat = null;
             if (state.maxInv === undefined) state.maxInv = 15;
-            
             if (!state.activeContracts) state.activeContracts = [];
             if (!state.lab) state.lab = { chemicals: 0 };
             if (!state.leadersDefeated) state.leadersDefeated = [];
-            
-            // NEW: Initialize Average Costs
+            if (!state.seenEvents) state.seenEvents = [];
+            if (!state.weather) state.weather = 'clear';
+
+            // FIX: Inventory Costs & Invalid Item Cleanup
             if (!state.inventoryCosts) state.inventoryCosts = {};
-            // Backfill costs for existing items to prevent crazy profit numbers
+            
+            // Check inventory op items die niet meer bestaan in GOODS
             Object.keys(state.inventory).forEach(key => {
-                if (state.inventory[key] > 0 && !state.inventoryCosts[key]) {
-                    const good = GOODS.find(g => g.id === key);
-                    state.inventoryCosts[key] = good ? good.base : 0;
+                const good = GOODS.find(g => g.id === key);
+                if (!good) {
+                    console.warn(`Item '${key}' bestaat niet meer. Verwijderd uit inventory.`);
+                    delete state.inventory[key];
+                    delete state.inventoryCosts[key];
+                } else {
+                    // Als item bestaat maar geen inkoopwaarde heeft, zet default
+                    if (state.inventory[key] > 0 && !state.inventoryCosts[key]) {
+                        state.inventoryCosts[key] = good.base;
+                    }
                 }
             });
             
             if (state.player.nextXp > 50000) state.player.nextXp = 5000;
-            
             if (state.activeContracts.length === 0) this.generateContracts();
         },
 
@@ -1336,6 +1594,8 @@
                 activeContracts: [],
                 lab: { chemicals: 0 },
                 leadersDefeated: [],
+                seenEvents: [],
+                weather: 'clear',
                 prices: {}, priceTrends: {}, districtDemands: {},
                 currentNews: NEWS_HEADLINES[0], difficulty: diff,
                 activeCombat: null,
@@ -1761,6 +2021,13 @@
             heatDrop += (hackers * 3);
             state.heat = Math.max(0, state.heat - heatDrop);
 
+            // Weather System
+            const r = Math.random();
+            if (r < 0.2) state.weather = 'rain';
+            else if (r < 0.4) state.weather = 'smog';
+            else if (r < 0.5) state.weather = 'neon';
+            else state.weather = 'clear';
+
             // Feedback
             let feedback = `Winst: €${(districtInc + businessInc).toLocaleString()}`;
             if (totalWashed > 0) feedback += ` | Wit: €${totalWashed.toLocaleString()}`;
@@ -1776,6 +2043,7 @@
             state.currentNews = NEWS_HEADLINES[Math.floor(Math.random() * NEWS_HEADLINES.length)];
             this.generatePrices(true);
             this.generateContracts(); 
+            this.checkStoryEvents();
             UI.render();
             await this.save();
         },
@@ -1795,34 +2063,146 @@
             if (cost > 0 && state.money < cost) return UI.toast("Niet genoeg geld!", true);
             if (cost > 0) state.money -= cost;
 
+            // --- BESTAANDE LOGICA ---
             if (action === 'bribe' || action === 'pay') {
-                UI.toast("Betaald. Je bent veilig.", false);
-            } else if (action === 'run') {
-                if (Math.random() > 0.5) UI.toast("Ontsnapt!", false);
-                else { state.heat += 15; UI.toast("Gepakt! Heat +15%", true); }
-            } else if (action === 'fight') {
+                UI.toast("Betaald. Je vervolgt je weg.", false);
+            } 
+            else if (action === 'run' || action === 'hide') {
+                if (Math.random() > 0.5) UI.toast("Ontsnapt zonder gezien te worden.", false);
+                else { state.heat += 10; UI.toast("Gezien! Heat +10%", true); }
+            } 
+            else if (action === 'fight') {
                 this.startCombat(0, { name: "Gangster", risk: 50, hp: 60 }); 
                 return;
-            } else if (action === 'deal') {
-                // Update cost for shadow deal
-                const gid = 'drugs';
-                const buyPrice = 300; // Deal cost
-                const currentCount = state.inventory[gid] || 0;
-                const currentCost = state.inventoryCosts[gid] || 0;
-                
-                // Fix: Math floor to prevent floating point issues in save file
-                const newAvg = Math.floor(((currentCount * currentCost) + buyPrice) / (currentCount + 1));
-                state.inventoryCosts[gid] = newAvg;
-                
+            } 
+            else if (action === 'deal') {
+                const gid = 'tech'; 
                 state.inventory[gid] = (state.inventory[gid] || 0) + 1;
-                UI.toast("Deal gesloten.", false);
-            } else if (action === 'loot') {
+                UI.toast("Deal gesloten: +1 Data", false);
+            } 
+            else if (action === 'loot') {
                 state.money += 1000;
-                UI.toast("Geld in de zak.", false);
+                UI.toast("Geld gevonden: +€1000", false);
             }
+
+            // --- NIEUWE LOGICA VOOR FLAVOR UPDATE ---
+            
+            // 1. Skill Checks
+            else if (action === 'force_run') {
+                const muscle = this.getPlayerStat('muscle');
+                // Kans = 40% + (Muscle * 10%)
+                if (Math.random() < (0.4 + (muscle * 0.1))) {
+                    UI.toast("Je ramt door de blokkade heen! (Muscle Succes)");
+                } else {
+                    state.hp -= 15;
+                    state.heat += 20;
+                    UI.toast("Mislukt! Je auto is beschadigd en ze hebben je kenteken.", true);
+                }
+            }
+            else if (action === 'hack_drone') {
+                const brains = this.getPlayerStat('brains');
+                if (Math.random() < (0.4 + (brains * 0.1))) {
+                    state.heat = Math.max(0, state.heat - 10);
+                    UI.toast("Drone gehackt! Heat gewist (-10%).");
+                } else {
+                    state.heat += 15;
+                    UI.toast("Hack mislukt! Alarm geactiveerd.", true);
+                }
+            }
+
+            // 2. Interacties
+            else if (action === 'buy_item_loot') {
+                state.inventory['luxury'] = (state.inventory['luxury'] || 0) + 1;
+                UI.toast("Horloge gekocht voor een prikkie. (+1 Luxury)");
+            }
+            else if (action === 'rob_civilian') {
+                state.money += 400;
+                state.rep -= 5;
+                state.heat += 5;
+                UI.toast("Je hebt de man beroofd. (Cash +400, Rep -5)", true);
+            }
+            else if (action === 'help_faction') {
+                state.rep += 10;
+                state.familyRel['syndicate'] += 15;
+                UI.toast("Syndicate waardeert je hulp. (+Rep)");
+            }
+            else if (action === 'loot_box') {
+                const r = Math.random();
+                if(r < 0.5) { state.inventory['weapons'] = (state.inventory['weapons']||0)+1; UI.toast("Wapen gevonden!"); }
+                else { state.inventory['drugs'] = (state.inventory['drugs']||0)+2; UI.toast("Drugs gevonden!"); }
+            }
+            else if (action === 'heal_cheap') {
+                state.hp = Math.min(100, state.hp + 50);
+                UI.toast("Opgelapt in de steeg (+50 HP).");
+            }
+            else if (action === 'buff_combat') {
+                state.player.xp += 50;
+                state.heat += 5;
+                UI.toast("Je voelt de adrenaline! (+50 XP)");
+            }
+
             this.generatePrices(true);
             UI.render();
             this.save();
+        },
+
+        // Nieuwe functie voor Solo Ops
+        performSoloOperation(id) {
+            const op = SOLO_OPERATIONS.find(o => o.id === id);
+            if (!op) return;
+            if (state.player.level < op.level) return UI.toast("Level te laag!", true);
+
+            const playerStat = this.getPlayerStat(op.stat);
+            let chance = 100 - op.risk + (playerStat * 5) - (state.heat / 4);
+            chance = Math.max(5, Math.min(95, chance));
+
+            if (Math.random() * 100 < chance) {
+                // Success
+                state.dirtyMoney += op.reward;
+                state.heat += op.heat;
+                const xpGain = Math.floor(op.reward / 10);
+                this.gainXp(xpGain);
+                UI.toast(`SUCCES! +€${op.reward} (Zwart) | +Heat`);
+            } else {
+                // Fail
+                const damage = Math.floor(op.risk / 2);
+                state.hp -= damage;
+                state.heat += Math.floor(op.heat * 1.5);
+                UI.toast(`MISLUKT! -${damage} HP | Politie gealarmeerd!`, true);
+
+                // Hospital Check
+                if (state.hp <= 0) {
+                    state.hp = 15;
+                    const loss = Math.floor(state.money * 0.2);
+                    state.money -= loss;
+                    setTimeout(() => {
+                        UI.modal("ZIEKENHUIS", 
+                            `<div style="color:var(--blood); font-weight:bold;">KRITIEK!</div>
+                             <p>Je bent zwaargewond afgevoerd.</p>
+                             <p>Medische kosten: €${loss.toLocaleString()}</p>`);
+                    }, 500);
+                }
+            }
+            UI.render();
+            this.save();
+        },
+
+        checkStoryEvents() {
+            for (const evt of STORY_EVENTS) {
+                if (!state.seenEvents.includes(evt.id) && evt.trigger(state)) {
+                    state.seenEvents.push(evt.id);
+                    const html = `
+                        <div style="background:#111; border:1px solid #333; padding:15px; border-radius:4px; margin-bottom:10px;">
+                            <div style="color:#888; font-size:0.7rem; margin-bottom:5px;">VAN: <span style="color:var(--gold);">${evt.sender}</span></div>
+                            <div style="color:#fff; font-weight:bold; margin-bottom:10px; border-bottom:1px dashed #444; padding-bottom:5px;">BETREFT: ${evt.subject}</div>
+                            <div style="font-family:'Courier New', monospace; color:#ccc; font-size:0.8rem; line-height:1.4;">${evt.body}</div>
+                        </div>
+                    `;
+                    UI.modal("INKOMEND BERICHT", html);
+                    this.save();
+                    return; // Stop checking to avoid spam
+                }
+            }
         },
 
         getPlayerStat(statName) {
@@ -2095,6 +2475,9 @@
         },
 
         recruit() {
+            // FIX: Crew Limiet
+            if (state.crew.length >= 6) return UI.toast("Crew limiet bereikt (Max 6).", true);
+            
             if (state.money < 2500) return UI.toast("Onvoldoende geld.", true);
             state.money -= 2500;
             const roles = ['Chauffeur', 'Enforcer', 'Hacker', 'Smokkelaar'];
@@ -2174,7 +2557,10 @@
             // NEW: Ensure we track maxHP for UI bars
             let enemyMaxHP = target.hp || 100;
             
-            let logs = [`[ALARM] ${target.name} (HP:${targetHP}) valt aan!`, `[INFO] Kies je strategie...`];
+            // Initial log with environment flavor
+            const envName = COMBAT_ENVIRONMENT[state.loc] ? COMBAT_ENVIRONMENT[state.loc].name : "Onbekend Terrein";
+            let logs = [`[LOCATIE] ${envName}`, `[ALARM] ${target.name} (HP:${targetHP}) valt aan!`];
+            
             state.activeCombat = { 
                 idx, 
                 targetName: target.name, 
@@ -2182,7 +2568,8 @@
                 enemyMaxHP, // Store Max HP
                 logs, 
                 isBoss: target.isBoss || false, 
-                familyId: target.familyId || null
+                familyId: target.familyId || null,
+                stunned: false // Track stun state
             };
             this.save();
             window.Engine.combatState = state.activeCombat;
@@ -2195,7 +2582,6 @@
             const idx = s.idx;
             const crew = state.crew[idx];
             
-            // Fix: Check if crew exists, if not (died previously), exit cleanly or close modal
             if(!crew) { 
                 state.activeCombat = null; 
                 this.save();
@@ -2204,10 +2590,21 @@
 
             const targetName = s.targetName;
             const targetHP = s.targetHP;
-            const maxHP = s.enemyMaxHP || 100; // Fallback
+            const maxHP = s.enemyMaxHP || 100; 
             const enemyPct = Math.max(0, Math.min(100, (targetHP / maxHP) * 100));
-            const playerPct = Math.max(0, Math.min(100, (crew.hp / 100) * 100)); // Assuming 100 max hp for player crew for now
+            const playerPct = Math.max(0, Math.min(100, (crew.hp / 100) * 100)); 
             
+            // --- DYNAMIC BUTTON LOGIC ---
+            const env = COMBAT_ENVIRONMENT[state.loc];
+            const role = crew.role;
+            
+            let roleBtn = { name: "ACTIE", sub: "Standaard", icon: "activity" };
+            
+            if (role === 'Hacker') roleBtn = { name: "SYSTEM JAM", sub: "Brains Stun", icon: "wifi" };
+            else if (role === 'Enforcer') roleBtn = { name: "RAGE", sub: "2x DMG / Self DMG", icon: "axe" };
+            else if (role === 'Chauffeur') roleBtn = { name: "HIT & RUN", sub: "Snelle Aanval", icon: "car" };
+            else if (role === 'Smokkelaar') roleBtn = { name: "ROOKBOM", sub: "Verlaag Accuraatheid", icon: "cloud" };
+
             const html = `
                 <div class="combat-arena">
                     <div class="combat-header">
@@ -2228,30 +2625,30 @@
                 
                 <div class="combat-actions-grid">
                     <div class="combat-btn" onclick="window.Engine.combatRound('attack')">
-                        <i data-lucide="sword" size="24"></i>
-                        <span class="combat-btn-label">AANVAL</span>
+                        <i data-lucide="crosshair" size="24"></i>
+                        <span class="combat-btn-label">VUURGEVECHT</span>
                         <span class="combat-btn-sub">Muscle DMG</span>
                     </div>
                     <div class="combat-btn" onclick="window.Engine.combatRound('defend')">
                         <i data-lucide="shield" size="24"></i>
-                        <span class="combat-btn-label">DEKKING</span>
-                        <span class="combat-btn-sub">-50% DMG</span>
+                        <span class="combat-btn-label">DEKKING ZOEKEN</span>
+                        <span class="combat-btn-sub">Defense Up</span>
                     </div>
-                    <div class="combat-btn" onclick="window.Engine.combatRound('trick')">
-                        <i data-lucide="zap" size="24"></i>
-                        <span class="combat-btn-label">TRUC</span>
-                        <span class="combat-btn-sub">Brains Crit?</span>
+                    <div class="combat-btn" onclick="window.Engine.combatRound('district_special')">
+                        <i data-lucide="map-pin" size="24"></i>
+                        <span class="combat-btn-label">${env.actionName}</span>
+                        <span class="combat-btn-sub">${env.desc}</span>
                     </div>
-                    <div class="combat-btn" onclick="window.Engine.combatRound('intimidate')">
-                        <i data-lucide="skull" size="24"></i>
-                        <span class="combat-btn-label">INTIMIDEER</span>
-                        <span class="combat-btn-sub">Charm Debuff</span>
+                    <div class="combat-btn" onclick="window.Engine.combatRound('role_special')">
+                        <i data-lucide="${roleBtn.icon}" size="24"></i>
+                        <span class="combat-btn-label">${roleBtn.name}</span>
+                        <span class="combat-btn-sub">${roleBtn.sub}</span>
                     </div>
                 </div>
                 <button class="btn" style="width:100%; margin-top:10px;" onclick="window.Engine.combatFlee()">VLUCHT POGING</button>
             `;
             
-            UI.modal("GEVECHT IN PROGRESS", html, " "); // Empty actions footer
+            UI.modal("GEVECHT IN PROGRESS", html, " "); 
             this.updateCombatLog();
             if(window.lucide) window.lucide.createIcons();
         },
@@ -2264,6 +2661,7 @@
             }
         },
 
+        // --- GEPATCHED: COMBAT LOGIC ---
         combatRound(action) {
             const s = window.Engine.combatState;
             if(!s) return;
@@ -2273,61 +2671,155 @@
             if(!crew) { UI.closeModal(); UI.toast("Combat Error: Crew missing"); return; }
             
             const logs = s.logs;
+            const env = COMBAT_ENVIRONMENT[state.loc];
             const muscle = this.getPlayerStat('muscle');
             const brains = this.getPlayerStat('brains');
             const charm = this.getPlayerStat('charm');
             
             let dmg = 0; 
-            let enemyDmg = Math.floor(Math.random() * 15) + 5; // Base enemy dmg
-            let playerMsg = "";
-            let enemyMsg = "";
+            let enemyDmg = Math.floor(Math.random() * 15) + 5; 
+            let enemyHitChance = 0.8; 
 
-            // --- Player Action Phase ---
-            if (action === 'attack') {
-                dmg = Math.floor(Math.random() * 20) + 10 + (muscle * 2.5);
-                if (crew.role === 'Enforcer') dmg += 5;
-                playerMsg = `> AANVAL: Je haalt uit met kracht!`;
-            } 
-            else if (action === 'defend') {
-                dmg = Math.floor(Math.random() * 5) + muscle; // Small counter dmg
-                enemyDmg = Math.floor(enemyDmg * 0.5); // 50% reduction
-                playerMsg = `> DEKKING: Je blokkeert de aanval.`;
+            // Handle Stun
+            if (s.stunned) {
+                logs.push(`<span style="color:var(--gold)">[STUN] ${s.targetName} is nog duizelig en doet niets.</span>`);
+                enemyDmg = 0;
+                s.stunned = false; 
             }
-            else if (action === 'trick') {
-                if(Math.random() < 0.4 + (brains * 0.05)) {
-                    dmg = Math.floor(Math.random() * 30) + 20 + (brains * 3);
-                    playerMsg = `> TRUC: CRITICAL HIT! Slimme zet.`;
+
+            // --- PLAYER ACTION PHASE ---
+            switch(action) {
+                case 'attack':
+                    dmg = Math.floor(Math.random() * 20) + 10 + (muscle * 2.5);
+                    logs.push(`> [${crew.name}] opent het vuur!`);
+                    break;
+
+                case 'defend':
+                    dmg = Math.floor(Math.random() * 5) + muscle; 
+                    enemyDmg = Math.floor(enemyDmg * 0.4); 
+                    logs.push(`> [${crew.name}] duikt achter dekking.`);
+                    break;
+
+                case 'flee_fail':
+                    dmg = 0;
+                    logs.push(`<span style="color:var(--gold)">> VLUCHT: Je struikelt! Vijand slaat toe!</span>`);
+                    enemyDmg = Math.floor(enemyDmg * 1.5);
+                    break;
+
+                case 'district_special':
+                    logs.push(`<i>${env.log}</i>`);
+                    if (env.type === 'ambush') { // Port
+                        if (Math.random() > 0.5) {
+                            dmg = Math.floor(Math.random() * 30) + 30 + (muscle * 3);
+                            logs.push(`<span style="color:var(--green)">[CRIT] De val klapt dicht! Enorme schade!</span>`);
+                        } else {
+                            dmg = 0;
+                            logs.push(`<span style="color:#888">[MIS] Ze zagen je aankomen...</span>`);
+                        }
+                    } else if (env.type === 'tech') { // Crown
+                        if (Math.random() < 0.4 + (brains * 0.05)) {
+                            dmg = 10;
+                            s.stunned = true;
+                            enemyDmg = 0;
+                            logs.push(`<span style="color:var(--cold)">[HACK] Beveiliging valt vijand aan! (STUNNED)</span>`);
+                        } else {
+                            dmg = 0;
+                            logs.push(`[FAIL] Firewall blokkeert je hack.`);
+                        }
+                    } else if (env.type === 'brutal') { // Iron
+                        dmg = Math.floor(Math.random() * 20) + 20 + (muscle * 2);
+                        logs.push(`[SMASH] De machine grijpt de vijand.`);
+                    } else if (env.type === 'dirty') { // Low
+                        dmg = Math.floor(Math.random() * 10) + 10 + charm;
+                        enemyDmg = Math.floor(enemyDmg * 0.7);
+                        logs.push(`[TRUC] Zand in de ogen! Vijand is verblind.`);
+                    } else if (env.type === 'cover') { // Neon
+                        dmg = 0;
+                        enemyDmg = 0;
+                        state.rep -= 5;
+                        logs.push(`<span style="color:var(--gold)">[DEKKING] Je gebruikt burgers als schild. Reputatie -5.</span>`);
+                    }
+                    break;
+
+                case 'role_special':
+                    if (crew.role === 'Hacker') {
+                        if (Math.random() < 0.6 + (brains * 0.05)) {
+                            dmg = 5;
+                            s.stunned = true;
+                            enemyDmg = 0;
+                            logs.push(`> [${crew.name}] gebruikt SYSTEM JAM. Vijand bevroren!`);
+                        } else {
+                            logs.push(`> [${crew.name}] faalt de jam sequence.`);
+                        }
+                    } else if (crew.role === 'Enforcer') {
+                        dmg = (Math.floor(Math.random() * 20) + 15 + (muscle * 2)) * 2;
+                        const selfDmg = 15;
+                        crew.hp -= selfDmg;
+                        UI.showFloat('cb-player-hp', '-' + selfDmg, 'red'); 
+                        logs.push(`> [${crew.name}] gaat BERSERK! <span style="color:var(--blood)">(-${selfDmg} HP Self)</span>`);
+                    } else if (crew.role === 'Chauffeur') {
+                        dmg = Math.floor(Math.random() * 20) + 10;
+                        enemyHitChance = 0.5; 
+                        logs.push(`> [${crew.name}] doet een Hit & Run aanval!`);
+                    } else if (crew.role === 'Smokkelaar') {
+                        dmg = Math.floor(Math.random() * 10);
+                        enemyDmg = Math.floor(enemyDmg * 0.3); 
+                        logs.push(`> [${crew.name}] gooit een ROOKBOM. Zicht is nul.`);
+                    }
+                    break;
+            }
+
+            // --- RESOLVE DAMAGE ---
+            s.targetHP -= dmg; // Speler doet schade
+
+            // FIX: CHECK DEATH BEFORE ENEMY ATTACKS BACK
+            if (s.targetHP <= 0) {
+                if(dmg > 0) UI.showFloat('cb-enemy-hp', '-' + dmg, 'var(--blood)');
+                logs.push(`[WIN] ${s.targetName} is verslagen!`);
+                crew.xp += 50;
+                this.gainXp(25);
+                
+                if (s.isBoss) {
+                     state.leadersDefeated.push(s.familyId);
+                     state.rep += 500;
+                     setTimeout(() => UI.modal("KINGPIN STATUS", `${s.targetName} is dood. Hun gebied is nu kwetsbaar.`), 1000);
                 } else {
-                    dmg = Math.floor(Math.random() * 5);
-                    playerMsg = `> TRUC: Mislukt...`;
+                     setTimeout(() => UI.modal("GEWONNEN", "Vijand verslagen. Je crew overleeft."), 500);
+                }
+                
+                // Final UI Update for kill shot
+                const eBar = document.getElementById('cb-enemy-bar');
+                const eHp = document.getElementById('cb-enemy-hp');
+                if(eBar) { eBar.style.width = '0%'; eHp.innerText = '0'; }
+
+                s.logs = logs; 
+                this.updateCombatLog();
+                state.activeCombat = null;
+                this.save();
+                this.checkWinCondition();
+                return; // STOP EXECUTION
+            }
+
+            // Enemy Attack Logic (Only if alive)
+            if (enemyDmg > 0 && !s.stunned) {
+                if (Math.random() < enemyHitChance) {
+                    crew.hp -= enemyDmg;
+                    UI.showFloat('cb-player-hp', '-' + enemyDmg, 'red');
+                    logs.push(`<span style="color:var(--blood)">[HIT] Vijand doet -${enemyDmg} HP schade.</span>`);
+                } else {
+                    UI.showFloat('cb-player-hp', 'MIS', '#fff');
+                    logs.push(`<span style="color:#888">[MIS] Vijand mist door je manoeuvres.</span>`);
                 }
             }
-            else if (action === 'intimidate') {
-                dmg = Math.floor(Math.random() * 5) + charm;
-                // Debuff logic could be complex, for now simple dmg reduction for this turn
-                enemyDmg = Math.max(0, enemyDmg - (5 + charm)); 
-                playerMsg = `> INTIMIDEER: De vijand aarzelt.`;
-            }
-            // NEW: Explicit Flee Fail Logic
-            else if (action === 'flee_fail') {
-                dmg = 0;
-                playerMsg = `<span style="color:var(--gold)">> VLUCHT: Je struikelt! Vijand slaat toe!</span>`;
-                enemyDmg = Math.floor(enemyDmg * 1.5); // Extra damage when failing to flee
+
+            if(dmg > 0) {
+                UI.showFloat('cb-enemy-hp', '-' + dmg, 'var(--blood)');
+                logs.push(`<span style="color:var(--green)">[HIT] Jij doet -${dmg} HP schade.</span>`);
+            } else if (action === 'attack' || action === 'role_special') {
+                UI.showFloat('cb-enemy-hp', 'MIS', '#fff');
             }
 
-            // --- Resolve Damage ---
-            s.targetHP -= dmg;
-            crew.hp -= enemyDmg;
-            
-            logs.push(playerMsg);
-            if(dmg > 0) logs.push(`<span style="color:var(--green)">[HIT] -${dmg} HP bij vijand.</span>`);
-            
-            if (s.targetHP > 0) {
-                logs.push(`<span style="color:var(--blood)">[HIT] Vijand doet -${enemyDmg} HP schade.</span>`);
-                if(action === 'defend') logs.push(`<span style="color:#888; font-style:italic;">(Schade gehalveerd door dekking)</span>`);
-            }
-
-            // --- UI Updates (Direct DOM manipulation for speed) ---
+            // --- UI UPDATE ANIMATION ---
             const pBar = document.getElementById('cb-player-bar');
             const eBar = document.getElementById('cb-enemy-bar');
             const pHp = document.getElementById('cb-player-hp');
@@ -2340,41 +2832,25 @@
                 pHp.innerText = Math.max(0, crew.hp);
                 eHp.innerText = Math.max(0, s.targetHP);
                 
-                // Shake effect on damage
                 if(enemyDmg > 0) {
                     const modal = document.getElementById('modal-box');
                     if(modal) {
                         modal.classList.remove('shake-anim');
-                        void modal.offsetWidth; // trigger reflow
+                        void modal.offsetWidth; 
                         modal.classList.add('shake-anim');
                     }
                 }
             }
 
-            // --- Win/Loss Check ---
-            if (s.targetHP <= 0) {
-                logs.push(`[WIN] ${s.targetName} is verslagen!`);
-                crew.xp += 50;
-                this.gainXp(25);
-                
-                if (s.isBoss) {
-                     state.leadersDefeated.push(s.familyId);
-                     state.rep += 500;
-                     setTimeout(() => UI.modal("KINGPIN STATUS", `${s.targetName} is dood. Hun gebied is nu kwetsbaar.`), 1000);
-                } else {
-                     setTimeout(() => UI.modal("GEWONNEN", "Vijand verslagen. Je crew overleeft."), 500);
-                }
-                state.activeCombat = null;
-            } 
-            else if (crew.hp <= 0) {
+            // --- LOSS CHECK ---
+            if (crew.hp <= 0) {
                 state.crew.splice(idx, 1);
                 state.activeCombat = null; 
                 this.recalcStats(); 
                 setTimeout(() => UI.modal("VERLOREN", `<span style="color:var(--blood)">${crew.name}</span> is gesneuveld in het gevecht.`), 500);
             }
 
-            // --- Save State ---
-            s.logs = logs; // update logs in state
+            s.logs = logs; 
             this.save();
             this.updateCombatLog();
             this.checkWinCondition();
@@ -2385,7 +2861,6 @@
                  state.activeCombat = null; this.save();
                  UI.closeModal(); UI.modal("VLUCHT", "Je bent ontsnapt."); 
              } else {
-                 // The 'flee_fail' action logic is now handled inside combatRound
                  this.combatRound('flee_fail'); 
              }
         },
