@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noxhaven: Blood & Empire - Market Update</title>
+    <title>Noxhaven: Blood & Empire - Patched</title>
     <!-- Externe Icon Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -268,7 +268,7 @@
         #toast { 
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
             background: #111; color: #fff; padding: 12px 24px; border-radius: 6px; 
-            border: 1px solid var(--gold); font-weight: 600; z-index: 9999; display: none; 
+            border: 1px solid var(--gold); font-weight: 600; z-index: 10001; display: none; 
             font-size: 0.8rem; box-shadow: 0 5px 20px rgba(0,0,0,0.5); text-align: center;
         }
         .toast-red { border-color: var(--blood) !important; color: #ffadad !important; }
@@ -294,7 +294,7 @@
         <div style="margin-bottom: 40px;">
             <div style="font-family: var(--font-main); color: var(--blood); font-size: 3.5rem; font-weight: bold; letter-spacing: 8px; margin-bottom: 5px; text-shadow: 0 0 30px rgba(185, 28, 28, 0.6);">NOXHAVEN</div>
             <div style="color: var(--gold); letter-spacing: 4px; font-size: 0.8rem; font-weight: 600; opacity: 0.8;">KINGPIN UPDATE</div>
-            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.4 (MARKET FIXED)</div>
+            <div style="color: #666; font-size: 0.6rem; margin-top:5px;">V6.5 (PATCHED)</div>
         </div>
         <div style="display:flex; flex-direction:column; gap:12px;">
             <button class="btn btn-action" onclick="window.UI.showDifficulty()">NIEUWE OPERATIE</button>
@@ -903,8 +903,10 @@
                 const equippedId = state.player.loadout[slot];
                 if (equippedId) {
                     const item = GEAR.find(g => g.id === equippedId);
-                    el.classList.add('filled');
-                    el.innerHTML = `<i data-lucide="${this.getIconForSlot(slot)}" class="equip-icon"></i><div style="font-weight:bold;">${item.name}</div><div class="equip-label">Klik om uit te doen</div>`;
+                    if(item) {
+                        el.classList.add('filled');
+                        el.innerHTML = `<i data-lucide="${this.getIconForSlot(slot)}" class="equip-icon"></i><div style="font-weight:bold;">${item.name}</div><div class="equip-label">Klik om uit te doen</div>`;
+                    }
                 } else {
                     el.classList.remove('filled');
                     el.innerHTML = `<i data-lucide="${this.getIconForSlot(slot)}" class="equip-icon"></i><span class="equip-label">${slot}</span>`;
@@ -919,6 +921,7 @@
             } else {
                 document.getElementById('gear-inventory-list').innerHTML = inventoryItems.map(id => {
                     const item = GEAR.find(g => g.id === id);
+                    if(!item) return '';
                     return `<div class="card"><div class="card-row"><div><div class="card-title">${item.name}</div><div class="card-sub">${item.desc}</div></div><button class="btn btn-sm btn-gold" onclick="window.Engine.equip('${item.id}')">DRAAG</button></div></div>`;
                 }).join('');
             }
@@ -940,7 +943,7 @@
                 let iconText = "";
                 if (state.districtDemands[id]) iconText = "$";
                 if (state.ownedDistricts.includes(id)) iconText = "♛";
-                iconEl.textContent = iconText;
+                if(iconEl) iconEl.textContent = iconText;
             });
 
             const markerGroup = document.getElementById('player-marker');
@@ -963,8 +966,8 @@
                     btn.disabled = true;
                     btn.classList.remove('btn-gold', 'btn-action');
                 } else {
-                    btn.innerText = `OVERNEMEN (€${sel.cost.toLocaleString()})`;
-                    btn.disabled = state.money < sel.cost;
+                    btn.innerText = `OVERNEMEN (€${sel ? sel.cost.toLocaleString() : 0})`;
+                    btn.disabled = !sel || state.money < sel.cost;
                     btn.classList.add('btn-gold');
                     btn.classList.remove('btn-action');
                 }
@@ -1718,7 +1721,9 @@
                     const baseCost = GOODS.find(g => g.id === gid).base * 0.5;
                     const currentCount = state.inventory[gid] || 0;
                     const currentCost = state.inventoryCosts[gid] || 0;
-                    const newAvg = ((currentCount * currentCost) + (batchSize * baseCost)) / (currentCount + batchSize);
+                    
+                    // FIX: Math floor for clean numbers
+                    const newAvg = Math.floor(((currentCount * currentCost) + (batchSize * baseCost)) / (currentCount + batchSize));
                     state.inventoryCosts[gid] = newAvg;
                     
                     labYield = batchSize;
@@ -1804,7 +1809,9 @@
                 const buyPrice = 300; // Deal cost
                 const currentCount = state.inventory[gid] || 0;
                 const currentCost = state.inventoryCosts[gid] || 0;
-                const newAvg = ((currentCount * currentCost) + buyPrice) / (currentCount + 1);
+                
+                // Fix: Math floor to prevent floating point issues in save file
+                const newAvg = Math.floor(((currentCount * currentCost) + buyPrice) / (currentCount + 1));
                 state.inventoryCosts[gid] = newAvg;
                 
                 state.inventory[gid] = (state.inventory[gid] || 0) + 1;
@@ -1831,13 +1838,15 @@
 
         gainXp(amount) {
             state.player.xp += amount;
-            // FIX: Using while loop to handle multi-level ups
-            while (state.player.xp >= state.player.nextXp) {
+            let safety = 0;
+            // FIX: Using while loop to handle multi-level ups with safety check
+            while (state.player.xp >= state.player.nextXp && safety < 50) {
                 state.player.xp -= state.player.nextXp;
                 state.player.level++;
                 state.player.nextXp = Math.floor(state.player.nextXp * 1.25);
                 state.player.skillPoints++;
                 UI.toast(`LEVEL UP! Nu level ${state.player.level}`);
+                safety++;
             }
         },
 
@@ -2065,8 +2074,8 @@
                 // --- UPDATE AVERAGE COST ---
                 const currentCount = state.inventory[gid] || 0;
                 const currentCost = state.inventoryCosts[gid] || 0;
-                // Weighted average calculation
-                const newAvg = ((currentCount * currentCost) + buyPrice) / (currentCount + 1);
+                // Weighted average calculation with Math.floor to keep integers in save file
+                const newAvg = Math.floor(((currentCount * currentCost) + buyPrice) / (currentCount + 1));
                 state.inventoryCosts[gid] = newAvg;
                 
                 state.inventory[gid] = (state.inventory[gid] || 0) + 1;
@@ -2185,7 +2194,13 @@
             if(!s) return;
             const idx = s.idx;
             const crew = state.crew[idx];
-            if(!crew) return; // safety
+            
+            // Fix: Check if crew exists, if not (died previously), exit cleanly or close modal
+            if(!crew) { 
+                state.activeCombat = null; 
+                this.save();
+                return; // Prevent crash
+            }
 
             const targetName = s.targetName;
             const targetHP = s.targetHP;
@@ -2293,6 +2308,12 @@
                 enemyDmg = Math.max(0, enemyDmg - (5 + charm)); 
                 playerMsg = `> INTIMIDEER: De vijand aarzelt.`;
             }
+            // NEW: Explicit Flee Fail Logic
+            else if (action === 'flee_fail') {
+                dmg = 0;
+                playerMsg = `<span style="color:var(--gold)">> VLUCHT: Je struikelt! Vijand slaat toe!</span>`;
+                enemyDmg = Math.floor(enemyDmg * 1.5); // Extra damage when failing to flee
+            }
 
             // --- Resolve Damage ---
             s.targetHP -= dmg;
@@ -2364,12 +2385,8 @@
                  state.activeCombat = null; this.save();
                  UI.closeModal(); UI.modal("VLUCHT", "Je bent ontsnapt."); 
              } else {
-                 const logs = window.Engine.combatState.logs;
-                 logs.push(`<span style="color:var(--gold)">> Vlucht mislukt! Vijand blokkeert de weg.</span>`);
-                 // Enemy free hit
-                 this.combatRound('flee_fail'); // Trigger a round where player does nothing? 
-                 // Actually simpler to just update log here, but let's keep it consistent:
-                 this.updateCombatLog();
+                 // The 'flee_fail' action logic is now handled inside combatRound
+                 this.combatRound('flee_fail'); 
              }
         },
 
