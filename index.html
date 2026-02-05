@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Noxhaven: Blood & Empire - Casino Update</title>
+    <title>Noxhaven: Blood & Empire - Menu Update</title>
     <!-- Externe Icon Library -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -494,6 +494,8 @@
 
             <div class="section-header"><span class="section-title">Kluis</span></div>
             <div id="gear-inventory-list"></div>
+            
+            <button class="btn" style="width:100%; margin-top:20px; opacity: 0.7;" onclick="window.Engine.quitToMenu()">STOPPEN & OPSLAAN</button>
         </div>
 
         <div id="view-families" class="view-section hidden">
@@ -715,6 +717,13 @@
     const UI = {
         showDifficulty() { document.getElementById('menu-main').classList.add('hidden'); document.getElementById('menu-difficulty').classList.remove('hidden'); },
         hideDifficulty() { document.getElementById('menu-difficulty').classList.add('hidden'); document.getElementById('menu-main').classList.remove('hidden'); },
+        
+        showMainMenu() {
+            document.getElementById('app').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            this.hideDifficulty(); // Resets the start menu state
+        },
+
         selectDifficulty(d) { Engine.start(d); },
         showTutorial() {
             const html = `
@@ -1256,6 +1265,11 @@
                 state = null;
                 location.reload();
             }
+        },
+        
+        async quitToMenu() {
+            await this.save();
+            UI.showMainMenu();
         },
 
         start(diff) {
