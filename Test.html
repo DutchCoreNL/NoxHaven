@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Noxhaven: Blood & Empire - Industrial Update</title>
+    <!-- Externe Icon Library -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #050505;
+            --panel: #0a0a0a;
+            --card: #141414;
+            --border: #262626;
+            --blood: #b91c1c; 
+            --gold: #c6a306;  
+            --cold: #2563eb;  
+            --purple: #9333ea; 
+            --green: #16a34a; 
+            --police: #1e40af;
+            --dirty: #71717a;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --font-main: 'Georgia', serif;
+            --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            margin: 0; padding: 0; background-color: var(--bg); color: var(--text-main); 
+            font-family: var(--font-ui); height: 100dvh; display: flex; flex-direction: column; 
+            overflow: hidden; 
+            overscroll-behavior: none; /* Voorkomt pull-to-refresh op mobiel */
+        }
+        
+        #app { 
+            display: flex; flex-direction: column; height: 100%; max-width: 600px; margin: 0 auto; 
+            background: var(--panel); border-left: 1px solid var(--border); border-right: 1px solid var(--border); 
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.6); width: 100%;
+        }
+        
+        header { 
+            flex: 0 0 auto; 
+            padding: 12px 16px; 
+            padding-top: max(12px, env(safe-area-inset-top)); /* Veilige zone voor notch */
+            border-bottom: 1px solid var(--border); 
+            background: linear-gradient(to bottom, #111, #0a0a0a); 
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .logo { font-family: var(--font-main); font-size: 1.4rem; color: var(--blood); text-transform: uppercase; letter-spacing: 3px; font-weight: bold; text-shadow: 0 0 10px rgba(185, 28, 28, 0.3); }
+        .rank-display { font-size: 0.65rem; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-top: 2px; }
+        
+        .resource-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .res-item { 
+            background: #111; padding: 6px 4px; border-radius: 4px; 
+            display: flex; flex-direction: column; align-items: center; gap: 2px; 
+            font-size: 0.65rem; border: 1px solid var(--border); transition: 0.2s;
+        }
+        .res-val { font-weight: 700; color: #fff; font-size: 0.8rem; }
+        .dirty-val { color: var(--dirty); font-size: 0.55rem; font-weight: 600; }
+
+        main { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 16px; 
+            padding-bottom: calc(85px + env(safe-area-inset-bottom)); /* Extra ruimte onderin */
+            scroll-behavior: smooth; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        
+        .news-ticker { 
+            background: #000; border: 1px solid var(--border); border-radius: 4px; 
+            padding: 6px 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 0;
+            overflow: hidden; position: relative; font-family: 'Courier New', monospace;
+        }
+        .news-label { 
+            color: var(--blood); font-weight: bold; font-size: 0.7rem; text-transform: uppercase; 
+            border-right: 1px solid #333; padding-right: 10px; flex-shrink: 0; 
+            background: #000; z-index: 2; position: relative;
+        }
+        .news-scroll-wrap { flex: 1; overflow: hidden; position: relative; margin-left: 10px; display: flex; align-items: center; }
+        .news-content { font-size: 0.75rem; color: #aaa; white-space: nowrap; animation: scroll-news 25s linear infinite; display: inline-block; }
+        @keyframes scroll-news { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
+
+        .card { 
+            background: var(--card); border: 1px solid var(--border); border-radius: 8px; 
+            padding: 12px; margin-bottom: 10px; position: relative; transition: all 0.2s; 
+        }
+        .card:active { transform: scale(0.99); border-color: var(--blood); }
+        .card-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .card-title { font-weight: 700; font-size: 0.95rem; color: #f1f5f9; }
+        .card-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; line-height: 1.3; }
+        
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin: 24px 0 12px 0; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+        .section-title { color: var(--gold); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+
+        .btn { 
+            background: #1f1f1f; border: 1px solid #333; color: #e2e8f0; padding: 12px 14px; /* Iets groter voor touch */
+            border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.75rem; 
+            transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; 
+            min-height: 44px; /* Apple Human Interface Guidelines minimum */
+        }
+        .btn:active { transform: scale(0.96); opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-action { background: var(--blood); color: #fff; border: none; width: 100%; padding: 14px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .btn-gold { border-color: var(--gold); color: var(--gold); background: rgba(198, 163, 6, 0.1); }
+        .btn-choice { background: #1a1a1a; border: 1px solid var(--border); text-align: left; padding: 12px; border-radius: 6px; margin-bottom: 8px; width: 100%; display: block; font-size: 0.8rem; line-height: 1.4; color: #ddd; }
+        .btn-choice:hover { border-color: var(--gold); background: #222; }
+        .btn-sm { padding: 8px 12px; font-size: 0.7rem; min-height: 32px; } /* Aangepast voor touch */
+
+        .btn.active-mode { background: var(--gold); color: #000; border-color: var(--gold); }
+
+        .market-item-grid { display: grid; grid-template-columns: 1fr 100px; gap: 10px; align-items: center; }
+        .price-trend { font-size: 0.65rem; padding: 2px 5px; border-radius: 3px; font-weight: bold; }
+        .trend-up { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .trend-down { color: #10b981; background: rgba(16, 185, 129, 0.1); }
+        .demand-tag { font-size: 0.6rem; color: var(--gold); border: 1px solid var(--gold); padding: 1px 4px; border-radius: 3px; text-transform: uppercase; margin-left: 5px; }
+
+        /* Map Styles */
+        #map-container { 
+            background: #050505; 
+            border: 1px solid var(--border); border-radius: 8px; position: relative; width: 100%; padding-top: 70%; margin-bottom: 16px; overflow: hidden; 
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+        }
+        .map-grid-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%; pointer-events: none;
+            background-size: 30px 30px;
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            z-index: 1;
+        }
+        .scanline {
+            width: 100%; height: 3px; background: rgba(198, 163, 6, 0.15); position: absolute; top: -10%; left: 0; pointer-events: none; z-index: 2;
+            box-shadow: 0 0 10px rgba(198, 163, 6, 0.3);
+            animation: scan 5s linear infinite;
+        }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
+        
+        #map-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
+        .map-district { 
+            fill: url(#building-pattern); stroke: #333; stroke-width: 1; 
+            transition: 0.3s ease; cursor: pointer; opacity: 0.7;
+        }
+        .map-district:hover { stroke: #666; opacity: 1; }
+        .map-district.selected { stroke: var(--gold); stroke-width: 2; fill: url(#building-pattern-active); opacity: 1; filter: drop-shadow(0 0 6px rgba(198, 163, 6, 0.3)); }
+        .map-district.owned { stroke: var(--blood); stroke-dasharray: 4,2; }
+        .map-highway { fill: none; stroke: #1a1a1a; stroke-width: 3; stroke-linecap: round; pointer-events: none; }
+        .map-label { 
+            font-family: var(--font-ui); font-size: 8px; font-weight: 700; fill: #666; 
+            pointer-events: none; text-anchor: middle; letter-spacing: 0.5px; text-transform: uppercase;
+        }
+        .map-label-bg { fill: rgba(0,0,0,0.8); rx: 3; pointer-events: none; }
+        .map-district:hover ~ .map-label-group .map-label, .map-district.selected ~ .map-label-group .map-label { fill: #fff; }
+        .map-district.selected ~ .map-label-group .map-label { fill: var(--gold); }
+        .player-target-ring { fill: none; stroke: var(--gold); stroke-width: 1.5; }
+        .player-target-dot { fill: var(--gold); }
+        .player-marker-group { transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; }
+        .icon-overlay { font-size: 10px; fill: #fff; pointer-events: none; text-anchor: middle; font-family: var(--font-ui); font-weight: bold; filter: drop-shadow(0 1px 2px black); }
+
+        /* RPG & Stats */
+        .stat-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 0.75rem; }
+        .stat-bar-bg { flex: 1; height: 6px; background: #222; border-radius: 3px; margin: 0 10px; overflow: hidden; }
+        .stat-bar-fill { height: 100%; transition: width 0.3s; }
+        .stat-val { font-weight: bold; width: 25px; text-align: right; color: #fff; }
+        .stat-btn { background: #222; border: 1px solid var(--gold); color: var(--gold); width: 18px; height: 18px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 3px; }
+        
+        .equip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+        .equip-slot { aspect-ratio: 1; background: #0f0f0f; border: 1px dashed #333; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #444; font-size: 0.65rem; position: relative; cursor: pointer; transition: 0.2s; }
+        .equip-slot.filled { border-style: solid; border-color: var(--gold); background: rgba(198, 163, 6, 0.05); color: #eee; }
+        .equip-icon { margin-bottom: 4px; }
+        .equip-label { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        nav { 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            min-height: 65px; height: auto; /* Flexibele hoogte */
+            padding-bottom: env(safe-area-inset-bottom); /* Veilige zone voor swipe bar */
+            background: rgba(10, 10, 10, 0.98); border-top: 1px solid var(--border); 
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000; 
+        }
+        .nav-btn { 
+            background: none; border: none; color: #555; display: flex; flex-direction: column; 
+            align-items: center; gap: 4px; font-size: 0.6rem; cursor: pointer; width: 20%; transition: 0.2s; 
+            font-weight: 600; padding: 10px 0; /* Meer raakvlak */
+        }
+        .nav-btn.active { color: var(--gold); }
+        .nav-btn i { stroke-width: 2px; }
+
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+        .modal { background: #0a0a0a; width: 100%; max-width: 450px; padding: 20px; border: 1px solid var(--border); border-radius: 12px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .modal-title { color: var(--blood); font-size: 1.2rem; margin-bottom: 10px; font-family: var(--font-main); text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        
+        .combat-log { 
+            background: #000; border: 1px solid #222; border-radius: 4px; padding: 10px; 
+            height: 120px; overflow-y: auto; font-family: 'Courier New', monospace; 
+            font-size: 0.7rem; color: #00ff00; margin: 10px 0; line-height: 1.4; scroll-behavior: smooth;
+        }
+        .combat-stance-btn { padding: 15px; border: 1px solid #333; border-radius: 6px; text-align: left; background: #111; cursor: pointer; transition: 0.2s; width: 100%; box-sizing: border-box; }
+        .combat-stance-btn:hover { border-color: var(--gold); background: #1a1a1a; }
+        .combat-stance-title { font-weight: bold; font-size: 0.8rem; color: #fff; margin-bottom: 2px; }
+        .combat-stance-desc { font-size: 0.65rem; color: #888; }
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 20px; border-radius: 6px; border: 1px solid var(--gold); font-weight: 600; z-index: 9999; display: none; font-size: 0.75rem; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        
+        .progress-container { height: 4px; background: #222; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+        .progress-fill { height: 100%; transition: width 0.3s ease; }
+        .hidden { display: none !important; }
+
+        #start-screen {
+            position: fixed; inset: 0; background: radial-gradient(circle at center, #1a0000 0%, #000 100%);
+            z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+</head>
+<body>
+
+<div id="start-screen">
+    <div id="menu-main" class="start-nav" style="width:100%; max-width:320px; text-align:center;">
+        <div style="margin-bottom: 40px;">
+            <div style="font-family: var(--font-main); color: var(--blood); font-size: 3.5rem; font-weight: bold; letter-spacing: 8px; margin-bottom: 5px; text-shadow: 0 0 30px rgba(185, 28, 28, 0.6);">NOXHAVEN</div>
+            <div style="color: var(--gold); letter-spacing: 4px; font-size: 0.8rem; font-weight: 600; opacity: 0.8;">SHADOWS OF INDUSTRY</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <button class="btn btn-action" onclick="window.UI.showDifficulty()">NIEUWE OPERATIE</button>
+            <button class="btn" onclick="window.UI.showTutorial()">HOE TE SPELEN</button>
+            <button class="btn" style="opacity:0.5; font-size:0.65rem;" onclick="window.Engine.reset()">RESET OPSLAG</button>
+        </div>
+        <div style="margin-top: 30px; font-size: 0.6rem; color: #333;">V5.1 STABLE</div>
+    </div>
+
+    <div id="menu-difficulty" class="start-nav hidden" style="width:100%; max-width:320px;">
+        <div style="color: var(--blood); font-weight: bold; letter-spacing: 2px; margin-bottom: 15px; text-align: center;">KIES JE ACHTERGROND</div>
+        <button class="btn btn-choice" onclick="window.UI.selectDifficulty('easy')">
+            <div style="color: var(--green);">STREET RAT (EASY)</div>
+            <div class="difficulty-desc" style="font-size:0.7rem; color:#888;">Start: €10k, Geen schuld.</div>
+        </button>
+        <button class="btn btn-choice" onclick="window.UI.selectDifficulty('normal')">
+            <div style="color: var(--gold);">ASSOCIATE (NORMAL)</div>
+            <div class="difficulty-desc" style="font-size:0.7rem; color:#888;">Start: €5k, €12k schuld.</div>
+        </button>
+        <button class="btn btn-choice" onclick="window.UI.selectDifficulty('hard')">
+            <div style="color: var(--blood);">OUTCAST (HARD)</div>
+            <div class="difficulty-desc" style="font-size:0.7rem; color:#888;">Start: €1.5k, €25k schuld, +Heat.</div>
+        </button>
+        <button class="btn" style="margin-top: 10px; width:100%;" onclick="window.UI.hideDifficulty()">TERUG</button>
+    </div>
+</div>
+
+<div id="app" class="hidden">
+    <header>
+        <div class="header-top">
+            <div>
+                <span class="logo">NOXHAVEN</span>
+                <div id="ui-rank" class="rank-display">LOOPJONGEN</div>
+            </div>
+            <div style="text-align:right;">
+                <span id="ui-date" style="color:var(--gold); font-family:var(--font-main); font-weight:bold;">DAG 1</span>
+                <div style="font-size:0.6rem; color:var(--blood); margin-top:2px; font-weight:bold;">SCHULD: €<span id="ui-debt">12.000</span></div>
+            </div>
+        </div>
+        <div class="resource-bar">
+            <div class="res-item">
+                <i data-lucide="banknote" size="14" style="color:var(--gold)"></i>
+                <span class="res-val" id="ui-money">0</span>
+                <div class="dirty-val" id="ui-dirty-money">€0</div>
+            </div>
+            <div class="res-item"><i data-lucide="shield" size="14" style="color:var(--purple)"></i><span class="res-val" id="ui-rep">0</span></div>
+            <div class="res-item"><i data-lucide="siren" size="14" style="color:var(--blood)"></i><span class="res-val" id="ui-heat">0%</span></div>
+            <div class="res-item"><i data-lucide="heart" size="14" style="color:var(--green)"></i><span class="res-val" id="ui-hp">100</span></div>
+        </div>
+    </header>
+
+    <main id="game-main">
+        <div id="view-city" class="view-section">
+            <div class="news-ticker">
+                <span class="news-label">EXTRA</span>
+                <div class="news-scroll-wrap">
+                    <div class="news-content" id="ui-news">Welkom in Noxhaven. Bouw je imperium.</div>
+                </div>
+            </div>
+
+            <div id="map-container">
+                <div class="map-grid-overlay"></div>
+                <div class="scanline"></div>
+                <svg id="map-svg" viewBox="0 0 400 300">
+                    <defs>
+                        <pattern id="building-pattern" width="6" height="6" patternUnits="userSpaceOnUse">
+                            <rect width="6" height="6" fill="#111" />
+                            <rect width="2" height="2" fill="#181818" x="1" y="1" />
+                        </pattern>
+                        <pattern id="building-pattern-active" width="6" height="6" patternUnits="userSpaceOnUse">
+                            <rect width="6" height="6" fill="#1a1a1a" />
+                            <rect width="2" height="2" fill="#2a2a2a" x="1" y="1" />
+                        </pattern>
+                    </defs>
+
+                    <g class="highways">
+                        <path d="M 100 90 L 265 85" class="map-highway" />
+                        <path d="M 100 90 L 100 205" class="map-highway" />
+                        <path d="M 265 85 L 215 200" class="map-highway" />
+                        <path d="M 265 85 L 315 200" class="map-highway" />
+                        <path d="M 100 205 L 215 200" class="map-highway" />
+                    </g>
+
+                    <!-- Districts -->
+                    <g id="g-port" onclick="window.Engine.selectDistrict('port')">
+                        <path d="M 40 40 L 160 40 L 160 140 L 40 140 Z" id="map-port" class="map-district"></path>
+                        <g class="map-label-group">
+                            <rect x="65" y="84" width="70" height="12" class="map-label-bg" />
+                            <text x="100" y="93" class="map-label">PORT NERO</text>
+                            <text x="100" y="115" id="icon-port" class="icon-overlay"></text>
+                        </g>
+                    </g>
+                    <g id="g-crown" onclick="window.Engine.selectDistrict('crown')">
+                        <path d="M 170 40 L 360 40 L 360 130 L 170 130 Z" id="map-crown" class="map-district"></path>
+                        <g class="map-label-group">
+                             <rect x="225" y="79" width="80" height="12" class="map-label-bg" />
+                            <text x="265" y="88" class="map-label">CROWN HEIGHTS</text>
+                            <text x="265" y="110" id="icon-crown" class="icon-overlay"></text>
+                        </g>
+                    </g>
+                    <g id="g-iron" onclick="window.Engine.selectDistrict('iron')">
+                        <path d="M 170 140 L 260 140 L 260 260 L 170 260 Z" id="map-iron" class="map-district"></path>
+                        <g class="map-label-group">
+                            <rect x="175" y="194" width="80" height="12" class="map-label-bg" />
+                            <text x="215" y="203" class="map-label">IRON BOROUGH</text>
+                            <text x="215" y="225" id="icon-iron" class="icon-overlay"></text>
+                        </g>
+                    </g>
+                    <g id="g-low" onclick="window.Engine.selectDistrict('low')">
+                        <path d="M 40 150 L 160 150 L 160 260 L 40 260 Z" id="map-low" class="map-district"></path>
+                        <g class="map-label-group">
+                            <rect x="75" y="199" width="50" height="12" class="map-label-bg" />
+                            <text x="100" y="208" class="map-label">LOWRISE</text>
+                            <text x="100" y="230" id="icon-low" class="icon-overlay"></text>
+                        </g>
+                    </g>
+                    <g id="g-neon" onclick="window.Engine.selectDistrict('neon')">
+                        <path d="M 270 140 L 360 140 L 360 260 L 270 260 Z" id="map-neon" class="map-district"></path>
+                        <g class="map-label-group">
+                             <rect x="280" y="194" width="70" height="12" class="map-label-bg" />
+                            <text x="315" y="203" class="map-label">NEON STRIP</text>
+                            <text x="315" y="225" id="icon-neon" class="icon-overlay"></text>
+                        </g>
+                    </g>
+                    
+                    <g id="player-marker" class="player-marker-group" transform="translate(0,0)">
+                        <circle r="8" class="player-target-ring" stroke-dasharray="4,2"></circle>
+                        <circle r="3" class="player-target-dot"></circle>
+                    </g>
+                </svg>
+            </div>
+            
+            <div id="district-info" class="card" style="border-left: 3px solid var(--blood);">
+                <div class="card-row">
+                    <div>
+                        <div id="dist-name" class="card-title">Selecteer District</div>
+                        <div id="dist-bonus" class="card-sub" style="color:var(--gold)">Geen bonus actief</div>
+                    </div>
+                    <button class="btn btn-gold btn-sm" id="btn-action-district">REIS HIERHEEN</button>
+                </div>
+            </div>
+
+            <button class="btn btn-action" id="btn-end-turn" onclick="window.Engine.endTurn()">DAG AFSLUITEN</button>
+        </div>
+
+        <div id="view-assets" class="view-section hidden">
+            <div class="section-header"><span class="section-title">Vastgoed & Dekmantels</span></div>
+            <div style="font-size:0.7rem; color:#888; margin-bottom:15px; background:#111; padding:10px; border-radius:4px;">
+                Koop legale bedrijven om passief inkomen te genereren. Bedrijven wassen elke nacht automatisch zwart geld wit.
+            </div>
+            <div id="business-list"></div>
+        </div>
+
+        <div id="view-profile" class="view-section hidden">
+            <div class="section-header"><span class="section-title">Boss Profiel</span></div>
+            <div class="card" style="border-left: 3px solid var(--gold);">
+                <div class="card-row">
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <div style="width:45px; height:45px; background:#222; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--gold);">
+                            <i data-lucide="user" size="24" color="white"></i>
+                        </div>
+                        <div>
+                            <div class="card-title">The Boss</div>
+                            <div class="card-sub">Level <span id="ui-lvl">1</span> | Skill Points: <span id="ui-sp" style="color:var(--gold); font-weight:bold;">0</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress-container" style="margin-top:12px;">
+                    <div class="progress-fill" id="ui-xp-bar" style="width:0%; background:var(--blood);"></div>
+                </div>
+                <div style="font-size:0.65rem; text-align:right; margin-top:2px; color:#666;">XP: <span id="ui-xp">0</span> / <span id="ui-xp-next">100</span></div>
+            </div>
+
+            <div class="section-header"><span class="section-title">Eigenschappen</span></div>
+            <div class="card">
+                <div id="stats-list"></div>
+            </div>
+
+            <div class="section-header"><span class="section-title">Loadout</span></div>
+            <div class="equip-grid">
+                <div class="equip-slot" id="slot-weapon" onclick="window.Engine.unequip('weapon')"><span class="equip-label">Wapen</span></div>
+                <div class="equip-slot" id="slot-armor" onclick="window.Engine.unequip('armor')"><span class="equip-label">Pantser</span></div>
+                <div class="equip-slot" id="slot-gadget" onclick="window.Engine.unequip('gadget')"><span class="equip-label">Gadget</span></div>
+            </div>
+
+            <div class="section-header"><span class="section-title">Kluis</span></div>
+            <div id="gear-inventory-list"></div>
+        </div>
+
+        <div id="view-families" class="view-section hidden">
+            <div class="section-header"><span class="section-title">Onderwereld Contacten</span></div>
+            <div id="contact-list"></div>
+            
+            <div class="section-header"><span class="section-title">HQ Upgrades</span></div>
+            <div id="hq-list"></div>
+
+            <div class="section-header"><span class="section-title">Corruptie</span></div>
+            <div class="card" style="border-left: 3px solid var(--police);">
+                <div class="card-row">
+                    <div>
+                        <div class="card-title">Politie Omkopen</div>
+                        <div class="card-sub">Relatie: <span id="ui-police-rel">20</span>/100</div>
+                    </div>
+                    <button class="btn btn-sm" onclick="window.Engine.bribePolice()">KOOP OM (<span id="ui-bribe-cost">€3.500</span>)</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-business" class="view-section hidden">
+            <div class="section-header"><span class="section-title">Lokale Markt: <span id="ui-loc-market" style="color:var(--blood)">Noxhaven</span></span></div>
+            <div id="ui-market-alert" style="color:var(--gold); font-size:0.7rem; margin-bottom:10px; font-weight:bold; display:none; background:rgba(198,163,6,0.1); padding:8px; border-radius:4px;">⚠️ Je bent hier niet. Reis hierheen om te handelen.</div>
+            
+            <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--text-muted); margin-bottom:10px;">
+                <span>BAGAGE: <span id="ui-inv-count">0</span> / <span id="ui-inv-max">12</span></span>
+                <span>MARGE: <span id="ui-trade-bonus">0%</span></span>
+            </div>
+            <div style="display:flex; gap:8px; margin-bottom:15px;">
+                <button id="btn-trade-mode-buy" class="btn btn-gold" style="flex:1" onclick="window.UI.setTradeMode('buy')">INKOOP</button>
+                <button id="btn-trade-mode-sell" class="btn" style="flex:1" onclick="window.UI.setTradeMode('sell')">VERKOOP</button>
+            </div>
+            <div id="market-list"></div>
+            
+            <div class="section-header"><span class="section-title">Witwas Operaties</span></div>
+            <div class="card" style="border-left: 3px solid var(--green);">
+                <div class="card-row">
+                    <div>
+                        <div class="card-title">Geld Witwassen</div>
+                        <div class="card-sub">Zet Zwart geld om in Schoon geld (15% fee).</div>
+                    </div>
+                    <button class="btn btn-gold btn-sm" onclick="window.Engine.washMoney()">START WITWAS</button>
+                </div>
+            </div>
+            
+            <div class="section-header"><span class="section-title">Zwarte Markt (Gear)</span></div>
+            <div id="shop-gear-list"></div>
+        </div>
+
+        <div id="view-ops" class="view-section hidden">
+            <div class="section-header"><span class="section-title">Mijn Crew</span></div>
+            <div id="crew-list"></div>
+            <button class="btn btn-gold" style="width:100%; margin-bottom:20px;" onclick="window.Engine.recruit()">HUUR SPECIALIST (€2.500)</button>
+            
+            <div class="section-header"><span class="section-title">Criminele Operaties</span></div>
+            <div id="crimes-list"></div>
+        </div>
+    </main>
+
+    <nav>
+        <button class="nav-btn active" id="nav-city" onclick="window.UI.nav('city')" data-view="city"><i data-lucide="map" size="20"></i>KAART</button>
+        <button class="nav-btn" id="nav-assets" onclick="window.UI.nav('assets')" data-view="assets"><i data-lucide="building-2" size="20"></i>BEZIT</button>
+        <button class="nav-btn" id="nav-business" onclick="window.UI.nav('business')" data-view="business"><i data-lucide="package" size="20"></i>HANDEL</button>
+        <button class="nav-btn" id="nav-ops" onclick="window.UI.nav('ops')" data-view="ops"><i data-lucide="crosshair" size="20"></i>MISSIES</button>
+        <button class="nav-btn" id="nav-profile" onclick="window.UI.nav('profile')" data-view="profile"><i data-lucide="user" size="20"></i>BOSS</button>
+    </nav>
+</div>
+
+<div id="overlay" class="overlay">
+    <div class="modal">
+        <div id="m-title" class="modal-title">TITEL</div>
+        <div id="m-content" class="modal-text">Inhoud...</div>
+        <div id="m-actions" style="display:flex; flex-direction:column; gap:10px; margin-top:20px;"></div>
+    </div>
+</div>
+
+<div id="toast">Melding</div>
+
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, doc, getDoc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    // --- Data Definitions ---
+    const DISTRICTS = {
+        'port': { name: 'Port Nero', cost: 12000, income: 450, cx: 100, cy: 90, mods: { drugs: 1.0, weapons: 0.6, tech: 1.2, luxury: 1.3, meds: 0.9 } },
+        'crown': { name: 'Crown Heights', cost: 85000, income: 2800, cx: 265, cy: 85, mods: { drugs: 1.8, weapons: 1.5, tech: 1.4, luxury: 2.5, meds: 1.2 } },
+        'iron': { name: 'Iron Borough', cost: 25000, income: 900, cx: 215, cy: 200, mods: { drugs: 1.1, weapons: 1.1, tech: 0.7, luxury: 1.2, meds: 1.0 } },
+        'low': { name: 'Lowrise', cost: 8000, income: 250, cx: 100, cy: 205, mods: { drugs: 0.5, weapons: 1.3, tech: 1.0, luxury: 0.8, meds: 1.1 } },
+        'neon': { name: 'Neon Strip', cost: 45000, income: 1600, cx: 315, cy: 200, mods: { drugs: 1.4, weapons: 1.2, tech: 1.6, luxury: 1.5, meds: 0.8 } }
+    };
+
+    const GOODS = [
+        { id: 'drugs', name: 'Synthetica', base: 150, icon: 'pipette' },
+        { id: 'weapons', name: 'Zware Wapens', base: 1400, icon: 'shield' },
+        { id: 'tech', name: 'Zwarte Data', base: 800, icon: 'cpu' },
+        { id: 'luxury', name: 'Geroofde Kunst', base: 4500, icon: 'gem' },
+        { id: 'meds', name: 'Medische Voorraad', base: 600, icon: 'pill' }
+    ];
+
+    const CRIMES = [
+        { id: 'burglary', name: 'Huisinbraak', risk: 15, heat: 5, reward: [1000, 2000], rep: 12, xp: 20 },
+        { id: 'smuggle', name: 'Smokkelrit', risk: 35, heat: 18, reward: [8000, 15000], rep: 60, xp: 50 },
+        { id: 'bank', name: 'Noxhaven Global Bank', risk: 65, heat: 45, reward: [55000, 120000], rep: 300, xp: 150 }
+    ];
+
+    const FAMILIES = {
+        'cartel': { contact: 'El Serpiente', desc: 'Controleert de drugsstroom vanuit Port Nero.', color: '#b91c1c' },
+        'syndicate': { contact: 'Mr. Wu', desc: 'Hightech en spionage in Crown Heights.', color: '#2563eb' },
+        'bikers': { contact: 'Hammer', desc: 'Wapenhandel in Iron Borough.', color: '#d97706' }
+    };
+
+    const HQ_UPGRADES = [
+        { id: 'security', name: 'Versterkte Deuren', cost: 5000, desc: 'Vermindert de kans op aanvallen met 10%.' },
+        { id: 'garage', name: 'Grotere Garage', cost: 8000, desc: '+5 Bagage ruimte.' },
+        { id: 'server', name: 'Encrypted Server', cost: 12000, desc: 'Sneller Heat verlies per dag.' }
+    ];
+
+    const GEAR = [
+        { id: 'glock', type: 'weapon', name: 'Glock 17', cost: 1500, stats: { muscle: 2 }, desc: '+2 Kracht. Betrouwbaar.' },
+        { id: 'ak47', type: 'weapon', name: 'AK-47', cost: 4500, stats: { muscle: 5 }, desc: '+5 Kracht. Zwaar geschut.' },
+        { id: 'kevlar', type: 'armor', name: 'Kevlar Vest', cost: 2000, stats: { muscle: 1 }, desc: '+1 Kracht. Beschermt tegen kogels.' },
+        { id: 'suit', type: 'armor', name: 'Maatpak', cost: 3000, stats: { charm: 3 }, desc: '+3 Charisma. Kleren maken de man.' },
+        { id: 'phone', type: 'gadget', name: 'Burner Phone', cost: 800, stats: { brains: 1 }, desc: '+1 Vernuft. Voor snelle deals.' },
+        { id: 'jammer', type: 'gadget', name: 'Signal Jammer', cost: 5000, stats: { brains: 4 }, desc: '+4 Vernuft. Blokkeert politiesignalen.' }
+    ];
+
+    const BUSINESSES = [
+        { id: 'bar', name: 'Neon Dive Bar', cost: 15000, income: 300, clean: 150, desc: 'Een kleine bar in de Lowrise. Wast €150/dag.' },
+        { id: 'club', name: 'Sapphire Nightclub', cost: 45000, income: 1200, clean: 600, desc: 'Luxe club in de Neon Strip. Wast €600/dag.' },
+        { id: 'shipping', name: 'Nero Logistics', cost: 120000, income: 3500, clean: 2000, desc: 'Transportbedrijf in Port Nero. Wast €2000/dag.' },
+        { id: 'tech', name: 'Data Haven Ltd', cost: 250000, income: 8000, clean: 5000, desc: 'Serverfarm in Crown Heights. Wast €5000/dag.' }
+    ];
+
+    const NEWS_HEADLINES = [
+        "Politie verhoogt patrouilles na reeks inbraken.",
+        "Grondstoftekort in Crown Heights jaagt prijzen omhoog.",
+        "Elena Virelli claimt overwinning in cyberoorlog.",
+        "Bounty Hunters gesignaleerd in de havensector.",
+        "Bendeoorlog in de Neon Strip drijft vraag naar meds op."
+    ];
+
+    // --- Game Logic ---
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'noxhaven-saga-v5';
+    let state = null;
+    let db, auth, user, tradeMode = 'buy';
+    let useLocalStorage = false;
+    let selectedDistrict = null; 
+
+    const Engine = {
+        async init() {
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) throw new Error("Local Mode");
+                const config = JSON.parse(__firebase_config);
+                const app = initializeApp(config);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                await signInAnonymously(auth);
+                onAuthStateChanged(auth, async (u) => {
+                    user = u;
+                    if (user) await this.load();
+                });
+            } catch (e) {
+                console.log("Overschakelen naar offline modus:", e);
+                useLocalStorage = true;
+                this.load();
+            }
+        },
+
+        async load() {
+            if (useLocalStorage) {
+                const localData = localStorage.getItem('noxhaven_save');
+                if (localData) {
+                    try {
+                        state = JSON.parse(localData);
+                        this.checkSaveIntegrity(); 
+                        UI.hideStartScreen();
+                        this.generatePrices(false); 
+                        selectedDistrict = state.loc;
+                        UI.render();
+                    } catch(e) {
+                        console.error("Corrupt save data", e);
+                    }
+                }
+            } else if (user && db) {
+                try {
+                    const snap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'));
+                    if (snap.exists()) {
+                        state = snap.data();
+                        this.checkSaveIntegrity();
+                        UI.hideStartScreen();
+                        this.generatePrices(false); 
+                        selectedDistrict = state.loc;
+                        UI.render();
+                    }
+                } catch(e) { console.error("Load error", e); }
+            }
+        },
+
+        checkSaveIntegrity() {
+            if (!state.player) {
+                state.player = {
+                    level: 1, xp: 0, nextXp: 100, skillPoints: 0,
+                    stats: { muscle: 1, brains: 1, charm: 1 },
+                    loadout: { weapon: null, armor: null, gadget: null }
+                };
+            }
+            if (!state.ownedGear) state.ownedGear = [];
+            if (!state.ownedBusinesses) state.ownedBusinesses = [];
+            // FIX: Ensure prices and demands exist if loading old save
+            if (!state.prices) state.prices = {};
+            if (!state.districtDemands) state.districtDemands = {};
+            if (!state.priceTrends) state.priceTrends = {};
+        },
+
+        async save() {
+            if (!state) return;
+            if (useLocalStorage) {
+                localStorage.setItem('noxhaven_save', JSON.stringify(state));
+            } else if (user && db) {
+                await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'), state);
+            }
+        },
+
+        async reset() {
+            if (useLocalStorage) {
+                localStorage.removeItem('noxhaven_save');
+            } else if (user && db) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'save', 'game'));
+            }
+            state = null;
+            location.reload();
+        },
+
+        start(diff) {
+            let money = 5000, debt = 12000, heat = 0;
+            if (diff === 'easy') { money = 10000; debt = 0; }
+            if (diff === 'hard') { money = 1500; debt = 25000; heat = 15; }
+
+            state = {
+                day: 1, money: money, dirtyMoney: 0, rep: 0, hp: 100, heat: heat, debt: debt,
+                loc: 'low', maxInv: 12, inventory: { drugs: 0, weapons: 0, tech: 0, luxury: 0, meds: 0 },
+                crew: [], ownedDistricts: [], hqUpgrades: [], ownedGear: [], ownedBusinesses: [], policeRel: 20, familyRel: {},
+                prices: {}, priceTrends: {}, districtDemands: {},
+                currentNews: NEWS_HEADLINES[0], difficulty: diff,
+                player: {
+                    level: 1, xp: 0, nextXp: 100, skillPoints: 0,
+                    stats: { muscle: 1, brains: 1, charm: 1 },
+                    loadout: { weapon: null, armor: null, gadget: null }
+                }
+            };
+
+            Object.keys(FAMILIES).forEach(f => state.familyRel[f] = 10);
+
+            UI.hideStartScreen();
+            this.generatePrices(true);
+            selectedDistrict = state.loc;
+            UI.render();
+            this.save();
+        },
+
+        generatePrices(force = false) {
+            // FIX: Ensure initialization if empty object
+            if (!force && state.prices && Object.keys(state.prices).length > 0) return;
+            state.prices = {};
+            state.districtDemands = {}; // Reset demands
+            Object.keys(DISTRICTS).forEach(id => {
+                state.prices[id] = {};
+                // 20% chance for high demand
+                state.districtDemands[id] = Math.random() > 0.8 ? GOODS[Math.floor(Math.random()*GOODS.length)].id : null;
+                GOODS.forEach(g => {
+                    const volatility = 0.5 + Math.random(); 
+                    const demandMod = (state.districtDemands[id] === g.id) ? 1.6 : 1.0;
+                    const newPrice = Math.floor(g.base * volatility * DISTRICTS[id].mods[g.id] * demandMod);
+                    state.prices[id][g.id] = newPrice;
+                    state.priceTrends[g.id] = Math.random() > 0.5 ? 'up' : 'down';
+                });
+            });
+        },
+
+        async endTurn() {
+            state.day++;
+            
+            const districtInc = state.ownedDistricts.reduce((s, id) => s + DISTRICTS[id].income, 0);
+            
+            let businessInc = 0;
+            let totalWashed = 0;
+            if(state.ownedBusinesses) {
+                state.ownedBusinesses.forEach(bid => {
+                    const biz = BUSINESSES.find(b => b.id === bid);
+                    if(biz) {
+                        businessInc += biz.income;
+                        let washAmount = Math.min(state.dirtyMoney, biz.clean);
+                        state.dirtyMoney -= washAmount;
+                        state.money += washAmount; 
+                        totalWashed += washAmount;
+                    }
+                });
+            }
+
+            state.money += (districtInc + businessInc);
+
+            if(state.debt > 0) state.debt = Math.floor(state.debt * 1.03);
+            
+            const totalBrains = this.getPlayerStat('brains');
+            let heatDrop = 5 + Math.floor(totalBrains / 2);
+            if(state.hqUpgrades.includes('server')) heatDrop += 5;
+            state.heat = Math.max(0, state.heat - heatDrop);
+
+            // Events
+            if (state.heat > 75 && Math.random() < 0.25) return this.triggerBountyHunter();
+            if (state.ownedDistricts.length > 0 && Math.random() < 0.15) return this.triggerRivalAttack();
+
+            state.currentNews = NEWS_HEADLINES[Math.floor(Math.random() * NEWS_HEADLINES.length)];
+            this.generatePrices(true);
+            UI.render();
+            await this.save();
+
+            let summary = `Dag ${state.day} overzicht.<br>Territorium Winst: €${districtInc.toLocaleString()}.`;
+            if (businessInc > 0) summary += `<br>Bedrijfs Winst: €${businessInc.toLocaleString()}.`;
+            if (totalWashed > 0) summary += `<br>Auto-Witwas: €${totalWashed.toLocaleString()}.`;
+            summary += `<br>Heat gedaald: -${heatDrop}%`;
+
+            UI.modal("DAG OVERZICHT", summary);
+        },
+
+        getPlayerStat(statName) {
+            let total = state.player.stats[statName];
+            Object.values(state.player.loadout).forEach(itemId => {
+                if (itemId) {
+                    const item = GEAR.find(g => g.id === itemId);
+                    if (item && item.stats && item.stats[statName]) {
+                        total += item.stats[statName];
+                    }
+                }
+            });
+            return total;
+        },
+
+        gainXp(amount) {
+            state.player.xp += amount;
+            if (state.player.xp >= state.player.nextXp) {
+                state.player.xp -= state.player.nextXp;
+                state.player.level++;
+                state.player.nextXp = Math.floor(state.player.nextXp * 1.5);
+                state.player.skillPoints++;
+                UI.toast(`LEVEL UP! Nu level ${state.player.level}`);
+            }
+        },
+
+        upgradeStat(stat) {
+            if (state.player.skillPoints > 0) {
+                state.player.stats[stat]++;
+                state.player.skillPoints--;
+                UI.render();
+                this.save();
+            }
+        },
+
+        buyGear(id) {
+            const item = GEAR.find(g => g.id === id);
+            if (state.ownedGear && state.ownedGear.includes(id)) return UI.toast("Al in bezit.");
+            if (state.money < item.cost) return UI.toast("Te weinig geld.");
+            state.money -= item.cost;
+            if (!state.ownedGear) state.ownedGear = [];
+            state.ownedGear.push(id);
+            UI.toast(`${item.name} gekocht.`);
+            UI.render();
+            this.save();
+        },
+
+        buyBusiness(id) {
+            const biz = BUSINESSES.find(b => b.id === id);
+            if (state.ownedBusinesses && state.ownedBusinesses.includes(id)) return UI.toast("Al in bezit.");
+            if (state.money < biz.cost) return UI.toast("Onvoldoende kapitaal.");
+            state.money -= biz.cost;
+            if(!state.ownedBusinesses) state.ownedBusinesses = [];
+            state.ownedBusinesses.push(id);
+            this.gainXp(100);
+            UI.toast(`${biz.name} aangeschaft!`);
+            UI.render();
+            this.save();
+        },
+
+        equip(id) {
+            const item = GEAR.find(g => g.id === id);
+            if (!item) return;
+            state.player.loadout[item.type] = id;
+            UI.toast(`${item.name} uitgerust.`);
+            UI.render();
+            this.save();
+        },
+
+        unequip(slot) {
+            if (state.player.loadout[slot]) {
+                state.player.loadout[slot] = null;
+                UI.render();
+                this.save();
+            }
+        },
+
+        triggerBountyHunter() {
+            const content = "Een Bounty Hunter heeft je HQ gevonden! Verdedig je bezit.";
+            let actions = '';
+            state.crew.forEach((c, i) => {
+                actions += `<button class="btn btn-choice" onclick="window.Engine.startCombat(${i}, {name: 'Hunter', risk: 80, hp: 120})">Stuur ${c.name}</button>`;
+            });
+            actions += `<button class="btn btn-action" onclick="window.Engine.surrenderBounty()">Betaal premie (€5.000)</button>`;
+            UI.modal("BOUNTY HUNTER!", content, actions);
+        },
+
+        surrenderBounty() {
+            state.money = Math.max(0, state.money - 5000);
+            state.heat = 20;
+            UI.closeModal();
+            UI.toast("Premie betaald.");
+            this.endTurn();
+        },
+
+        triggerRivalAttack() {
+            const id = state.ownedDistricts[Math.floor(Math.random()*state.ownedDistricts.length)];
+            const d = DISTRICTS[id];
+            let actions = '';
+            let defenseBonus = state.hqUpgrades.includes('security') ? 20 : 0;
+            defenseBonus += (this.getPlayerStat('muscle') * 2);
+
+            state.crew.forEach((c, i) => {
+                actions += `<button class="btn btn-choice" onclick="window.Engine.defendDistrict('${id}', ${i}, ${defenseBonus})">Verdedig met ${c.name}</button>`;
+            });
+            actions += `<button class="btn btn-action" onclick="window.Engine.loseDistrict('${id}')">Geef district op</button>`;
+            UI.modal("RIVALERENDE AANVAL", `Rivalen vallen <b>${d.name}</b> aan!`, actions);
+        },
+
+        defendDistrict(id, idx, bonus) {
+            if ((Math.random() * 100) < (40 + bonus)) {
+                UI.closeModal();
+                UI.toast("Aanval afgeslagen!");
+                state.crew[idx].xp += 20;
+                this.gainXp(10);
+                this.endTurn();
+            } else {
+                this.startCombat(idx, { name: "Bendeoorlog", risk: 50, hp: 100 });
+            }
+        },
+
+        loseDistrict(id) {
+            state.ownedDistricts = state.ownedDistricts.filter(x => x !== id);
+            UI.closeModal();
+            UI.toast("Sector verloren.");
+            this.endTurn();
+        },
+
+        washMoney() {
+            if (state.dirtyMoney <= 0) return UI.toast("Geen zwart geld.");
+            const amount = Math.min(state.dirtyMoney, 3000 + (state.ownedDistricts.length * 1000));
+            state.dirtyMoney -= amount;
+            state.money += Math.floor(amount * 0.85);
+            state.heat += 10;
+            this.gainXp(5);
+            UI.toast(`€${amount} witgewassen.`);
+            UI.render();
+            this.save();
+        },
+
+        buyUpgrade(id) {
+            const upg = HQ_UPGRADES.find(u => u.id === id);
+            if(state.hqUpgrades.includes(id)) return UI.toast("Al in bezit.");
+            if(state.money < upg.cost) return UI.toast("Te weinig geld.");
+            state.money -= upg.cost;
+            state.hqUpgrades.push(id);
+            if(id === 'garage') state.maxInv += 5;
+            UI.toast(`${upg.name} geïnstalleerd.`);
+            UI.render();
+            this.save();
+        },
+        
+        selectDistrict(id) {
+            selectedDistrict = id;
+            UI.renderMap(); 
+        },
+
+        performDistrictAction() {
+            const id = selectedDistrict;
+            if(!id) return;
+            if (state.loc === id) {
+                const d = DISTRICTS[id];
+                if (!state.ownedDistricts.includes(id)) {
+                    if (state.money >= d.cost) {
+                        state.money -= d.cost;
+                        state.ownedDistricts.push(id);
+                        this.gainXp(50);
+                        UI.toast(`${d.name} overgenomen!`);
+                        UI.render();
+                        this.save();
+                    } else {
+                        UI.toast("Onvoldoende geld.");
+                    }
+                }
+            } else {
+                state.loc = id;
+                UI.toast(`Gereisd naar ${DISTRICTS[id].name}`);
+                UI.render();
+                this.save();
+            }
+        },
+
+        travel(id) { this.selectDistrict(id); },
+
+        trade(gid) {
+            if (tradeMode === 'buy' && state.loc !== selectedDistrict && selectedDistrict !== null) {
+                return UI.toast("Reis hierheen om te kopen.");
+            }
+            const basePrice = state.prices[state.loc][gid];
+            const invCount = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
+            
+            const totalCharm = this.getPlayerStat('charm');
+            const charmBonus = (totalCharm * 0.02) + (state.rep / 5000); 
+            const sellPrice = Math.floor(basePrice * 0.85 * (1 + charmBonus));
+
+            if (tradeMode === 'buy') {
+                if (state.money < basePrice) return UI.toast("Te weinig kapitaal.");
+                if (invCount >= state.maxInv) return UI.toast("Kofferbak vol.");
+                state.money -= basePrice;
+                state.inventory[gid] = (state.inventory[gid] || 0) + 1;
+            } else {
+                if (!state.inventory[gid] || state.inventory[gid] <= 0) return UI.toast("Niet op voorraad.");
+                state.money += sellPrice;
+                state.inventory[gid]--;
+                state.rep += 2;
+                this.gainXp(2); 
+            }
+            UI.render();
+            this.save();
+        },
+
+        recruit() {
+            if (state.money < 2500) return UI.toast("Onvoldoende geld.");
+            state.money -= 2500;
+            const roles = ['Chauffeur', 'Enforcer', 'Hacker'];
+            const names = ['Vinny', 'Pauly', 'Luca', 'Vito', 'Rico', 'Bones', 'Tank', 'Mouse'];
+            state.crew.push({
+                name: names[Math.floor(Math.random()*names.length)],
+                role: roles[Math.floor(Math.random()*roles.length)],
+                hp: 100, xp: 0, level: 1
+            });
+            UI.render();
+            this.save();
+        },
+
+        bribePolice() {
+            const totalCharm = this.getPlayerStat('charm');
+            const cost = Math.max(1000, 3500 - (totalCharm * 150));
+            if (state.money < cost) return UI.toast("Te duur.");
+            state.money -= cost;
+            state.policeRel = Math.min(100, state.policeRel + 20);
+            state.heat = Math.max(0, state.heat - 10);
+            UI.toast("Politie relatie verbeterd & Heat verlaagd.");
+            UI.render();
+            this.save();
+        },
+
+        commitCrime(cid, idx) {
+            const crime = CRIMES.find(x => x.id === cid);
+            const crew = state.crew[idx];
+            const muscle = this.getPlayerStat('muscle');
+            const brains = this.getPlayerStat('brains');
+            let statBonus = (muscle + brains) * 2;
+            let winChance = 100 - crime.risk - (state.heat / 2) + (crew.level * 5) + statBonus;
+            
+            UI.closeModal();
+            if (Math.random() * 100 < winChance) {
+                const loot = Math.floor(crime.reward[0] + Math.random() * (crime.reward[1] - crime.reward[0]));
+                state.dirtyMoney += loot;
+                state.rep += crime.rep;
+                state.heat += crime.heat;
+                crew.xp += 40;
+                this.gainXp(crime.xp);
+                if (crew.xp >= 100) { crew.level++; crew.xp = 0; UI.toast("Crew Level Up!"); }
+                UI.modal("MISSIE GESLAAGD", `Klus geklaard. €${loot.toLocaleString()} zwart geld binnengehaald.`);
+            } else {
+                this.startCombat(idx, { name: "Bendeoorlog", risk: 50, hp: 80 });
+            }
+            UI.render();
+            this.save();
+        },
+
+        // New Tactical Combat System
+        startCombat(idx, target) {
+            const crew = state.crew[idx];
+            let targetHP = target.hp || 100;
+            let logs = [`[ALARM] ${target.name} (HP:${targetHP}) valt aan!`, `[INFO] Kies je strategie...`];
+            
+            window.Engine.combatState = { idx, targetName: target.name, targetHP, logs };
+            
+            const stances = `
+                <div style="display:grid; gap:8px;">
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${target.name}', ${targetHP}, 'aggro')">
+                        <div class="combat-stance-title">AGGRESSIEF</div>
+                        <div class="combat-stance-desc">Hoog risico, hoge schade. Gebruikt Muscle.</div>
+                    </button>
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${target.name}', ${targetHP}, 'def')">
+                        <div class="combat-stance-title">DEFENSIEF</div>
+                        <div class="combat-stance-desc">Laag risico, lage schade. Spaart HP.</div>
+                    </button>
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${target.name}', ${targetHP}, 'tact')">
+                        <div class="combat-stance-title">TACTISCH</div>
+                        <div class="combat-stance-desc">Gebruikt Vernuft (Brains) om te vuren.</div>
+                    </button>
+                    <button class="btn" style="margin-top:5px;" onclick="window.Engine.combatFlee()">VLUCHT POGING</button>
+                </div>
+            `;
+
+            UI.modal("TACTISCH GEVECHT", `<div class="combat-log" id="c-log"></div><div id="combat-ui">${stances}</div>`, " ");
+            this.updateCombatLog();
+        },
+
+        updateCombatLog() {
+            const el = document.getElementById('c-log');
+            if (el && window.Engine.combatState) { 
+                el.innerHTML = window.Engine.combatState.logs.map(l => `<div>${l}</div>`).join(''); 
+                setTimeout(() => el.scrollTop = el.scrollHeight, 10);
+            }
+        },
+
+        combatRound(idx, targetName, targetHP, stance) {
+            const crew = state.crew[idx];
+            if(!crew) return UI.modal("ERROR", "Crewlid niet gevonden.");
+            
+            const logs = window.Engine.combatState.logs;
+            const muscle = this.getPlayerStat('muscle');
+            const brains = this.getPlayerStat('brains');
+            
+            // Player Attack
+            let dmg = 0;
+            let selfDmg = 0;
+
+            if (stance === 'aggro') {
+                dmg = Math.floor(Math.random() * 25) + 15 + (muscle * 3);
+                selfDmg = Math.floor(Math.random() * 20) + 5;
+                logs.push(`> AGGRO: Je vuurt wild in het rond.`);
+            } else if (stance === 'def') {
+                dmg = Math.floor(Math.random() * 15) + 5 + muscle;
+                selfDmg = Math.floor(Math.random() * 10);
+                logs.push(`> DEF: Je zoekt dekking en schiet terug.`);
+            } else if (stance === 'tact') {
+                dmg = Math.floor(Math.random() * 20) + 10 + (brains * 3);
+                selfDmg = Math.floor(Math.random() * 15) + 2;
+                logs.push(`> TACT: Je zoekt naar zwakke plekken.`);
+            }
+
+            // Apply Damage
+            targetHP -= dmg;
+            crew.hp -= selfDmg;
+            window.Engine.combatState.targetHP = targetHP;
+
+            logs.push(`[HIT] Jij doet -${dmg} schade.`);
+            logs.push(`[HIT] ${targetName} doet -${selfDmg} schade aan ${crew.name}.`);
+
+            // Check Win/Loss
+            if (targetHP <= 0) {
+                logs.push(`[WIN] ${targetName} is uitgeschakeld!`);
+                crew.xp += 30;
+                this.gainXp(15);
+                UI.modal("GEWONNEN", "Vijand verslagen. Je crew overleeft.");
+                return;
+            }
+            if (crew.hp <= 0) {
+                state.crew.splice(idx, 1);
+                UI.modal("VERLOREN", `${crew.name} is gesneuveld in het gevecht.`);
+                return;
+            }
+
+            // Update UI Log
+            this.updateCombatLog();
+            
+            // Update Buttons logic
+            const stances = `
+                <div style="display:grid; gap:8px;">
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'aggro')"><div class="combat-stance-title">AGGRESSIEF</div></button>
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'def')"><div class="combat-stance-title">DEFENSIEF</div></button>
+                    <button class="combat-stance-btn" onclick="window.Engine.combatRound(${idx}, '${targetName}', ${targetHP}, 'tact')"><div class="combat-stance-title">TACTISCH</div></button>
+                    <button class="btn" style="margin-top:5px;" onclick="window.Engine.combatFlee()">VLUCHT POGING</button>
+                </div>
+            `;
+            const ui = document.getElementById('combat-ui');
+            if(ui) ui.innerHTML = stances;
+        },
+
+        combatFlee() {
+             if (Math.random() > 0.5) { 
+                 UI.closeModal(); 
+                 UI.modal("VLUCHT", "Je bent ontsnapt, maar zonder buit."); 
+             } else {
+                 const logs = window.Engine.combatState.logs;
+                 logs.push(`> Vlucht mislukt! Je wordt in de rug geschoten.`);
+                 this.updateCombatLog();
+             }
+        }
+    };
+
+    // --- UI Logic ---
+    const UI = {
+        showDifficulty() { document.getElementById('menu-main').classList.add('hidden'); document.getElementById('menu-difficulty').classList.remove('hidden'); },
+        hideDifficulty() { document.getElementById('menu-difficulty').classList.add('hidden'); document.getElementById('menu-main').classList.remove('hidden'); },
+        selectDifficulty(d) { Engine.start(d); },
+        showTutorial() {
+            const content = `
+                <p><b>1. Handel</b>: Prijzen verschillen per wijk. Koop laag, reis naar een andere wijk en verkoop hoog.</p>
+                <p><b>2. Bezit</b>: Koop bedrijven voor passief inkomen en automatisch witwassen.</p>
+                <p><b>3. Heat</b>: Boven de 75% Heat komen premiejagers. Verlaag Heat door dagen te eindigen of om te kopen.</p>
+                <p><b>4. Profiel</b>: Upgrade je stats (Kracht/Vernuft/Charisma) om gevechten en handel te winnen.</p>
+            `;
+            this.modal("HOE TE SPELEN", content);
+        },
+        hideStartScreen() { 
+            document.getElementById('start-screen').classList.add('hidden'); 
+            document.getElementById('app').classList.remove('hidden'); 
+            if(window.lucide) lucide.createIcons(); 
+        },
+        nav(view) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(b => {
+                b.classList.remove('active');
+                if (b.dataset.view === view) b.classList.add('active');
+            });
+            this.render();
+        },
+        setTradeMode(m) { 
+            tradeMode = m; 
+            document.getElementById('btn-trade-mode-buy').classList.toggle('active-mode', m === 'buy');
+            document.getElementById('btn-trade-mode-buy').classList.toggle('btn-gold', m !== 'buy');
+            document.getElementById('btn-trade-mode-sell').classList.toggle('active-mode', m === 'sell');
+            document.getElementById('btn-trade-mode-sell').classList.toggle('btn-gold', m !== 'sell');
+            this.render(); 
+        },
+        render() {
+            if(!state) return;
+            document.getElementById('ui-money').innerText = `€${state.money.toLocaleString()}`;
+            document.getElementById('ui-dirty-money').innerText = `€${state.dirtyMoney.toLocaleString()}`;
+            document.getElementById('ui-rep').innerText = state.rep;
+            document.getElementById('ui-heat').innerText = `${state.heat}%`;
+            document.getElementById('ui-hp').innerText = state.hp;
+            document.getElementById('ui-date').innerText = `DAG ${state.day}`;
+            document.getElementById('ui-debt').innerText = state.debt.toLocaleString();
+            document.getElementById('ui-police-rel').innerText = state.policeRel;
+            
+            const totalCharm = Engine.getPlayerStat('charm');
+            const bribeCost = Math.max(1000, 3500 - (totalCharm * 150));
+            document.getElementById('ui-bribe-cost').innerText = `€${bribeCost.toLocaleString()}`;
+
+            const rankNames = ['Loopjongen', 'Associate', 'Enforcer', 'Capo', 'Underboss', 'Don'];
+            document.getElementById('ui-rank').innerText = rankNames[Math.min(rankNames.length-1, Math.floor(state.rep/500))];
+
+            this.renderMap();
+            this.renderMarket();
+            this.renderFamilies();
+            this.renderCrew();
+            this.renderCrimes();
+            this.renderProfile();
+            this.renderAssets();
+            document.getElementById('ui-news').innerText = state.currentNews;
+            
+            // FIX: Safely call icon creation
+            if(window.lucide) lucide.createIcons();
+        },
+
+        renderAssets() {
+            const owned = state.ownedBusinesses || [];
+            document.getElementById('business-list').innerHTML = BUSINESSES.map(b => {
+                const isOwned = owned.includes(b.id);
+                const btnClass = isOwned ? 'btn-gold' : (state.money >= b.cost ? 'btn-action' : 'btn');
+                const btnText = isOwned ? 'IN BEZIT' : `KOOP (€${b.cost.toLocaleString()})`;
+                const btnAction = isOwned ? '' : `onclick="window.Engine.buyBusiness('${b.id}')"`;
+                const disabled = isOwned ? 'disabled' : '';
+                
+                return `
+                <div class="card" style="border-left: 3px solid ${isOwned ? 'var(--gold)' : '#333'}">
+                    <div class="card-row">
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <div style="background:#222; padding:8px; border-radius:6px;"><i data-lucide="building" size="16" color="${isOwned ? 'var(--gold)' : '#666'}"></i></div>
+                            <div>
+                                <div class="card-title">${b.name}</div>
+                                <div class="card-sub">${b.desc}</div>
+                                <div class="card-sub" style="color:var(--green)">+€${b.income}/dag | Wast €${b.clean}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn ${btnClass}" style="width:100%; margin-top:8px;" ${disabled} ${btnAction}>${btnText}</button>
+                </div>`;
+            }).join('');
+        },
+
+        renderProfile() {
+            if (!state.player) return;
+            document.getElementById('ui-lvl').innerText = state.player.level;
+            document.getElementById('ui-sp').innerText = state.player.skillPoints;
+            document.getElementById('ui-xp').innerText = state.player.xp;
+            document.getElementById('ui-xp-next').innerText = state.player.nextXp;
+            document.getElementById('ui-xp-bar').style.width = `${Math.min(100, (state.player.xp / state.player.nextXp) * 100)}%`;
+
+            const stats = [
+                { id: 'muscle', label: 'Kracht', icon: 'swords' },
+                { id: 'brains', label: 'Vernuft', icon: 'brain' },
+                { id: 'charm', label: 'Charisma', icon: 'gem' }
+            ];
+
+            document.getElementById('stats-list').innerHTML = stats.map(s => {
+                const base = state.player.stats[s.id];
+                const total = Engine.getPlayerStat(s.id);
+                const bonus = total - base;
+                const bonusText = bonus > 0 ? `<span style="color:var(--gold)">+${bonus}</span>` : '';
+                const btn = state.player.skillPoints > 0 ? `<button class="stat-btn" onclick="window.Engine.upgradeStat('${s.id}')">+</button>` : '';
+                return `
+                <div class="stat-row">
+                    <div style="width:70px; display:flex; gap:6px; align-items:center;"><i data-lucide="${s.icon}" size="14"></i> ${s.label}</div>
+                    <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${(total/20)*100}%; background:var(--gold);"></div></div>
+                    <div class="stat-val">${base}${bonusText}</div>
+                    <div style="width:25px;">${btn}</div>
+                </div>`;
+            }).join('');
+
+            ['weapon', 'armor', 'gadget'].forEach(slot => {
+                const el = document.getElementById(`slot-${slot}`);
+                const equippedId = state.player.loadout[slot];
+                if (equippedId) {
+                    const item = GEAR.find(g => g.id === equippedId);
+                    el.classList.add('filled');
+                    el.innerHTML = `<i data-lucide="${this.getIconForSlot(slot)}" class="equip-icon"></i><div style="font-weight:bold;">${item.name}</div><div class="equip-label">Klik om uit te doen</div>`;
+                } else {
+                    el.classList.remove('filled');
+                    el.innerHTML = `<i data-lucide="${this.getIconForSlot(slot)}" class="equip-icon"></i><span class="equip-label">${slot}</span>`;
+                }
+            });
+
+            const owned = state.ownedGear || [];
+            const inventoryItems = owned.filter(id => !Object.values(state.player.loadout).includes(id));
+            
+            if (inventoryItems.length === 0) {
+                document.getElementById('gear-inventory-list').innerHTML = '<div style="color:#444; font-size:0.7rem; font-style:italic; padding:10px;">Kluis is leeg. Koop gear op de Zwarte Markt (Handel tab).</div>';
+            } else {
+                document.getElementById('gear-inventory-list').innerHTML = inventoryItems.map(id => {
+                    const item = GEAR.find(g => g.id === id);
+                    return `<div class="card"><div class="card-row"><div><div class="card-title">${item.name}</div><div class="card-sub">${item.desc}</div></div><button class="btn btn-sm btn-gold" onclick="window.Engine.equip('${item.id}')">DRAAG</button></div></div>`;
+                }).join('');
+            }
+        },
+
+        getIconForSlot(slot) {
+            if (slot === 'weapon') return 'sword';
+            if (slot === 'armor') return 'shield';
+            return 'smartphone';
+        },
+
+        renderMap() {
+            document.querySelectorAll('.map-district').forEach(p => {
+                const id = p.id.replace('map-', '');
+                p.classList.remove('selected', 'owned');
+                if (id === selectedDistrict) p.classList.add('selected');
+                if (state.ownedDistricts.includes(id)) p.classList.add('owned');
+                const iconEl = document.getElementById(`icon-${id}`);
+                let iconText = "";
+                if (state.districtDemands[id]) iconText = "$";
+                if (state.ownedDistricts.includes(id)) iconText = "♛";
+                iconEl.textContent = iconText;
+            });
+
+            const markerGroup = document.getElementById('player-marker');
+            const d = DISTRICTS[state.loc];
+            if(d) markerGroup.setAttribute('transform', `translate(${d.cx}, ${d.cy})`);
+
+            const sel = DISTRICTS[selectedDistrict];
+            document.getElementById('dist-name').innerText = sel ? sel.name : "Selecteer District";
+            
+            const demandGood = state.districtDemands[selectedDistrict];
+            const demandName = demandGood ? GOODS.find(g => g.id === demandGood).name : "Geen";
+            document.getElementById('dist-bonus').innerHTML = demandGood 
+                ? `<span style="color:var(--gold)">Hoge vraag: ${demandName} (+60%)</span>`
+                : `<span style="color:var(--text-muted)">Geen actieve vraag</span>`;
+
+            const btn = document.getElementById('btn-action-district');
+            if (state.loc === selectedDistrict) {
+                if (state.ownedDistricts.includes(selectedDistrict)) {
+                    btn.innerText = "JOUW TERRITORIUM";
+                    btn.disabled = true;
+                    btn.classList.remove('btn-gold', 'btn-action');
+                } else {
+                    btn.innerText = `OVERNEMEN (€${sel.cost.toLocaleString()})`;
+                    btn.disabled = state.money < sel.cost;
+                    btn.classList.add('btn-gold');
+                    btn.classList.remove('btn-action');
+                }
+            } else {
+                btn.innerText = "REIS HIERHEEN";
+                btn.disabled = false;
+                btn.classList.add('btn-action'); 
+                btn.classList.remove('btn-gold');
+            }
+            btn.onclick = () => window.Engine.performDistrictAction();
+        },
+
+        renderMarket() {
+            document.getElementById('ui-loc-market').innerText = DISTRICTS[state.loc].name;
+            const alertBox = document.getElementById('ui-market-alert');
+            
+            if (state.loc !== selectedDistrict && selectedDistrict !== null) {
+                alertBox.style.display = 'block';
+            } else {
+                alertBox.style.display = 'none';
+            }
+
+            document.getElementById('ui-inv-count').innerText = Object.values(state.inventory).reduce((a, b) => a + (b || 0), 0);
+            document.getElementById('ui-inv-max').innerText = state.maxInv;
+            
+            const totalCharm = Engine.getPlayerStat('charm');
+            const charmBonus = Math.floor(((totalCharm * 0.02) + (state.rep / 5000)) * 100);
+            document.getElementById('ui-trade-bonus').innerText = `${charmBonus}% (Charisma)`;
+            
+            document.getElementById('shop-gear-list').innerHTML = GEAR.map(g => {
+                const owned = state.ownedGear && state.ownedGear.includes(g.id);
+                if (owned) return ''; 
+                return `<div class="card"><div class="card-row"><div><div class="card-title">${g.name}</div><div class="card-sub">${g.desc}</div></div><button class="btn btn-sm btn-gold" onclick="window.Engine.buyGear('${g.id}')">€${g.cost}</button></div></div>`;
+            }).join('');
+
+            const prices = state.prices[state.loc] || {};
+            const demand = state.districtDemands[state.loc];
+            
+            document.getElementById('market-list').innerHTML = GOODS.map(g => {
+                const trend = state.priceTrends[g.id] === 'up' ? 'trend-up' : 'trend-down';
+                const basePrice = prices[g.id] || 0;
+                let displayPrice = basePrice;
+                let priceLabel = "Inkoop";
+                
+                if (tradeMode === 'sell') {
+                     const totalCharm = Engine.getPlayerStat('charm');
+                     const charmBonus = (totalCharm * 0.02) + (state.rep / 5000);
+                     displayPrice = Math.floor(basePrice * 0.85 * (1 + charmBonus));
+                     priceLabel = "Verkoop";
+                }
+
+                return `<div class="card"><div class="market-item-grid"><div style="display:flex; align-items:center; gap:10px;"><div style="background:#222; padding:8px; border-radius:8px; color:var(--gold)"><i data-lucide="${g.icon}"></i></div><div><div class="card-title">${g.name} <span class="price-trend ${trend}">${state.priceTrends[g.id] === 'up' ? '↑' : '↓'}</span> ${demand === g.id ? '<span class="demand-tag">VRAAG</span>' : ''}</div><div class="card-sub">${priceLabel}: €${displayPrice} | Bezit: ${state.inventory[g.id] || 0}</div></div></div><button class="btn btn-sm btn-gold" onclick="window.Engine.trade('${g.id}')">${tradeMode === 'buy' ? 'KOOP' : 'VERKOOP'}</button></div></div>`;
+            }).join('');
+        },
+
+        renderFamilies() {
+            document.getElementById('contact-list').innerHTML = Object.keys(FAMILIES).map(f => `<div class="card" style="border-left: 3px solid ${FAMILIES[f].color};"><div class="card-row"><div><div class="card-title">${FAMILIES[f].contact}</div><div class="card-sub">${FAMILIES[f].desc}</div></div><div class="tag">Rel: ${state.familyRel ? state.familyRel[f] : 0}</div></div></div>`).join('');
+            document.getElementById('hq-list').innerHTML = HQ_UPGRADES.map(u => {
+                const owned = state.hqUpgrades.includes(u.id);
+                return `<div class="card"><div class="card-row"><div><div class="card-title">${u.name}</div><div class="card-sub">${u.desc}</div></div><button class="btn btn-sm ${owned ? '' : 'btn-gold'}" ${owned ? 'disabled' : ''} onclick="window.Engine.buyUpgrade('${u.id}')">${owned ? 'BEZIT' : '€'+u.cost}</button></div></div>`;
+            }).join('');
+        },
+
+        renderCrew() {
+            const comments = ["Klaar voor actie.", "Alles rustig.", "Ik heb een slecht gevoel.", "Waar is het geld?"];
+            document.getElementById('crew-list').innerHTML = state.crew.map(c => `<div class="card"><div class="card-row"><div><div class="card-title">${c.name}</div><div class="card-sub">${c.role} Lvl ${c.level} | <i>"${comments[Math.floor(Math.random()*comments.length)]}"</i></div></div><div class="tag">${c.hp} HP</div></div><div class="progress-container"><div class="progress-fill" style="width:${c.xp}%; background:var(--gold);"></div></div></div>`).join('');
+        },
+
+        renderCrimes() {
+            document.getElementById('crimes-list').innerHTML = CRIMES.map(c => `<div class="card"><div class="card-row"><div><div class="card-title">${c.name}</div><div class="card-sub">Risico: ${c.risk}%</div></div><button class="btn btn-sm btn-action" onclick="window.UI.showMissionSelect('${c.id}')">START</button></div></div>`).join('');
+        },
+
+        showMissionSelect(crimeId) {
+            if (state.crew.length === 0) return this.toast("Huur eerst crewleden.");
+            let html = '<p style="margin-bottom:15px; font-size:0.8rem;">Wie stuur je?</p>';
+            state.crew.forEach((c, i) => {
+                html += `<button class="btn btn-choice" onclick="window.Engine.commitCrime('${crimeId}', ${i})">${c.name} (${c.role})</button>`;
+            });
+            this.modal("KIES UITVOERDER", html, '<button class="btn" onclick="window.UI.closeModal()">ANNULEREN</button>');
+        },
+
+        modal(t, m, a = null) {
+            document.getElementById('m-title').innerText = t;
+            document.getElementById('m-content').innerHTML = m;
+            document.getElementById('m-actions').innerHTML = a || '<button class="btn btn-action" onclick="window.UI.closeModal()">BEGREPEN</button>';
+            document.getElementById('overlay').style.display = 'flex';
+        },
+        closeModal() { document.getElementById('overlay').style.display = 'none'; },
+        toast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+    };
+
+    window.Engine = Engine; window.UI = UI;
+    window.onload = () => { Engine.init(); };
+</script>
+</body>
+</html>
